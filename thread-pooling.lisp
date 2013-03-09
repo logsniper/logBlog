@@ -39,7 +39,7 @@
    (available-workers ;; owned by the dispatcher.
     :documentation "A list of channels, each to speak to an available worker"
     :initarg :available-workers
-    :initform (make-instance '>simple-fifo-queue<)
+    :initform (empty-fifo-queue)
     :accessor taskmaster-available-workers)
    (busy-workers ;; owned by the dispatcher.
     :documentation "A set of busy workers"
@@ -49,7 +49,7 @@
    (pending-connections ;; owned by the dispatcher.
     :documentation "A list of pending connection socket"
     :initarg :pending-connections
-    :initform (make-instance '>simple-fifo-queue<)
+    :initform (empty-fifo-queue)
     :accessor taskmaster-pending-connections)
    ;; Support for bounding the number of threads we'll create
    (max-thread-count ;; must only be modified while stopped.
@@ -157,7 +157,7 @@ implementations."))
                            (acceptor-port (taskmaster-acceptor taskmaster)))))
       (setf (dispatcher-process taskmaster)
             (bt:make-thread
-             (lambda () (dispatch-work (taskmaster-acceptor taskmaster)))
+             (lambda () (dispatch-work taskmaster))
              :name (format nil "hunchentoot-dispatcher-~A:~A"
                            (or (acceptor-address (taskmaster-acceptor taskmaster)) "*")
                            (acceptor-port (taskmaster-acceptor taskmaster))))))))
@@ -196,7 +196,8 @@ implementations."))
     (when connection
       (process-connection (taskmaster-acceptor taskmaster) connection))
     (loop :for request = (progn
-                           (chanl:send channel `(:worker-ready ,worker-id ,channel) :blockp nil)
+                           (chanl:send (dispatcher-channel taskmaster)
+                                       `(:worker-ready ,worker-id ,channel) :blockp nil)
                            (chanl:recv channel :blockp t))
           :do (ematch request
                 ((list :process-connection connection)
@@ -260,7 +261,7 @@ implementations."))
               ((list :worker-ready worker-id chan)
                (mark-worker-ready taskmaster worker-id chan))
               ((list :process-connection connection)
-               (enqueue connection pending-connections)
+               (enqueue pending-connections connection)
                (incf accept-count))
               ((list :shutdown)
                ;; TODO: do something to notify the acceptor to that it should die?
