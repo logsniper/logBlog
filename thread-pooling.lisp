@@ -134,29 +134,30 @@ implementations."))
     (unless (> (taskmaster-max-accept-count taskmaster) (taskmaster-max-thread-count taskmaster))
       (parameter-error "MAX-ACCEPT-COUNT must be greater than MAX-THREAD-COUNT"))))
 
-(defmethod too-many-taskmaster-requests ((taskmaster thread-pooling-taskmaster) socket)
-  (declare (ignore socket))
-  (acceptor-log-message (taskmaster-acceptor taskmaster)
-                        :warning "Can't handle a new request, too many request threads already"))
-
 (defmethod shutdown ((taskmaster thread-pooling-taskmaster))
   ;; just wait until all workers are done, send them all a shutdown message, then die.
   (with-lock-held ((taskmaster-master-lock taskmaster))
     (when (eq (taskmaster-status taskmaster) :running)
       (chanl:send (dispatcher-channel taskmaster) `(:shutdown) :blockp nil))))
 
+(defmethod start-thread ((taskmaster thread-pooling-taskmaster) thunk &key name)
+  (declare (ignorable taskmaster))
+  (bt:make-thread thunk :name name))
+
 (defmethod execute-acceptor ((taskmaster thread-pooling-taskmaster))
   (with-lock-held ((taskmaster-master-lock taskmaster))
     (when (eq (taskmaster-status taskmaster) :stopped)
       (setf (taskmaster-status taskmaster) :running)
       (setf (acceptor-process taskmaster)
-            (bt:make-thread
+            (start-thread
+             taskmaster
              (lambda () (accept-connections (taskmaster-acceptor taskmaster)))
              :name (format nil "hunchentoot-listener-~A:~A"
                            (or (acceptor-address (taskmaster-acceptor taskmaster)) "*")
                            (acceptor-port (taskmaster-acceptor taskmaster)))))
       (setf (dispatcher-process taskmaster)
-            (bt:make-thread
+            (start-thread
+             taskmaster
              (lambda () (dispatch-work taskmaster))
              :name (format nil "hunchentoot-dispatcher-~A:~A"
                            (or (acceptor-address (taskmaster-acceptor taskmaster)) "*")
@@ -186,8 +187,7 @@ implementations."))
 
 (defmethod too-many-taskmaster-requests ((taskmaster thread-pooling-taskmaster) connection)
   (acceptor-log-message (taskmaster-acceptor taskmaster)
-                        :warning "Can't handle a new request, too many request threads already")
-  (send-service-unavailable-reply taskmaster connection))
+                        :warning "Can't handle a new request, too many request threads already"))
 
 (defgeneric initialize-worker-thread (taskmaster worker-id &optional connection))
 (defmethod initialize-worker-thread ((taskmaster thread-pooling-taskmaster) worker-id &optional connection)
@@ -274,7 +274,8 @@ implementations."))
               (declare (ignorable worker-id))
               (chanl:send chan '(:shutdown) :blockp nil))))
          (dolist (connection (dequeue-all pending-connections))
-           (too-many-taskmaster-requests taskmaster connection))
+           (too-many-taskmaster-requests taskmaster connection)
+           (send-service-unavailable-reply taskmaster connection))
          (when (empty-p busy-workers)
            (setf taskmaster-status :stopped)
            (return)))
@@ -297,7 +298,9 @@ implementations."))
              ((if max-accept-count
                   (>= accept-count max-accept-count)
                   (>= thread-count max-thread-count))
-              (too-many-taskmaster-requests taskmaster (dequeue pending-connections)))
+              (let ((connection (dequeue pending-connections)))
+                (too-many-taskmaster-requests taskmaster connection)
+                (send-service-unavailable-reply taskmaster connection)))
              ;; More connections than we are ready to process, but fewer than we are ready to accept?
              ;; Wait for some worker to become ready.
              ((and max-accept-count (>= thread-count max-thread-count))
