@@ -220,7 +220,8 @@ implementations."))
     (when connection
       (mark-worker-busy taskmaster worker-id connection nil))
     (handler-case*
-     (bt:make-thread
+     (start-thread
+      taskmaster
       (lambda () (initialize-worker-thread taskmaster worker-id connection))
       :name (format nil (taskmaster-worker-thread-name-format taskmaster) worker-id))
      (error (condition)
@@ -296,7 +297,7 @@ implementations."))
               (create-worker-thread taskmaster (dequeue pending-connections)))
              ;; Already trying to handle too many connections? Deny request with 503.
              ((if max-accept-count
-                  (>= accept-count max-accept-count)
+                  (> accept-count max-accept-count)
                   (>= thread-count max-thread-count))
               (let ((connection (dequeue pending-connections)))
                 (too-many-taskmaster-requests taskmaster connection)
