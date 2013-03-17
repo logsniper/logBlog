@@ -1,8 +1,8 @@
 (asdf/package:define-package quux-hunchentoot
   (:use :common-lisp
    :hunchentoot
-   :bordeaux-threads
    :alexandria
+   :chanl ;; for exchanging messages
    :optima ;; for matching inter-thread messages
    :classy) ;; for its >simple-fifo-queue<
   (:import-from
