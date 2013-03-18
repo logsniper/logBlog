@@ -68,15 +68,17 @@
     :documentation
     "The number of taskmaster processing threads currently running.")
    (max-accept-count ;; must only be modified while stopped.
-    :type (or integer null)
+    :type (or integer boolean)
     :initarg :max-accept-count
     :initform nil
     :accessor taskmaster-max-accept-count
     :documentation
-    "The maximum number of connections this taskmaster will accept before refusing
-     new connections.  If supplied, this must be greater than MAX-THREAD-COUNT.
+    "The maximum number of connections this taskmaster will accept
+     before refusing new connections.  If supplied and an integer,
+     this must be greater than MAX-THREAD-COUNT.
      The number of queued requests is the difference between MAX-ACCEPT-COUNT
-     and MAX-THREAD-COUNT.")
+     and MAX-THREAD-COUNT. If NIL, then behave as if it were MAX-THREAD-COUNT.
+     If T, then keep accepting new connections until resources are exhausted (not recommended).")
    (accept-count ;; while running, owned by the dispatcher.
     :type integer
     :initform 0
@@ -128,11 +130,20 @@ implementations."))
 (defmethod initialize-instance :after ((taskmaster thread-pooling-taskmaster) &rest init-args)
   "Ensure the if MAX-ACCEPT-COUNT is supplied, that it is greater than MAX-THREAD-COUNT."
   (declare (ignore init-args))
-  (when (taskmaster-max-accept-count taskmaster)
-    (unless (taskmaster-max-thread-count taskmaster)
-      (parameter-error "MAX-THREAD-COUNT must be supplied if MAX-ACCEPT-COUNT is supplied"))
-    (unless (> (taskmaster-max-accept-count taskmaster) (taskmaster-max-thread-count taskmaster))
-      (parameter-error "MAX-ACCEPT-COUNT must be greater than MAX-THREAD-COUNT"))))
+  (with-accessors ((max-accept-count taskmaster-max-accept-count)
+                   (max-thread-count taskmaster-max-thread-count)) taskmaster
+    (when max-accept-count
+      (unless max-thread-count
+        (parameter-error "MAX-THREAD-COUNT must be non-NIL if MAX-ACCEPT-COUNT is non-NIL (was ~D)"
+                         max-accept-count))
+      (unless (or (eql max-accept-count t) (> max-accept-count max-thread-count))
+        (parameter-error "MAX-ACCEPT-COUNT must be greater than MAX-THREAD-COUNT, but ~D <= ~D"
+                         max-accept-count max-thread-count)))))
+
+(defmethod hunchentoot::decrement-taskmaster-accept-count ((taskmaster thread-pooling-taskmaster))
+  ;; Compatibility function so we can reuse hunchentoot:send-service-unavailable-reply
+  (declare (ignorable taskmaster))
+  (values))
 
 (defmethod shutdown ((taskmaster thread-pooling-taskmaster))
   ;; just wait until all workers are done, send them all a shutdown message, then die.
@@ -305,9 +316,13 @@ implementations."))
                 (get-worker-busy-on-connection
                  taskmaster worker-id channel (dequeue pending-connections))))
              ;; Already trying to handle too many connections? Deny request with 503.
-             ((if max-accept-count
-                  (> accept-count max-accept-count)
-                  (>= thread-count max-thread-count))
+             ((etypecase max-accept-count
+                (integer
+                 (> accept-count max-accept-count))
+                (null
+                 (>= thread-count max-thread-count))
+                ((eql t)
+                  nil))
               (let ((connection (dequeue pending-connections)))
                 (too-many-taskmaster-requests taskmaster connection)
                 (send-service-unavailable-reply taskmaster connection)))
