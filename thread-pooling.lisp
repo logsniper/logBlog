@@ -231,7 +231,8 @@ implementations."))
      (error (condition)
        (let ((*acceptor* (taskmaster-acceptor taskmaster)))
          (log-message* *lisp-errors-log-level*
-                       "Error while creating worker thread: ~A" condition))))))
+                       "Error while creating worker thread: ~A" condition))))
+    (values worker-id channel)))
 
 (defgeneric dispatch-work (taskmaster))
 
