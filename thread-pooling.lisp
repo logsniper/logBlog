@@ -11,7 +11,7 @@
 ;; or cleaning up  whichever expensive state justifies having a thread pool
 ;; rather than just creating a new thread every time.
 ;;
-(defclass thread-pooling-taskmaster (taskmaster)
+(defclass thread-pooling-taskmaster (multi-threaded-taskmaster)
   ((master-lock
     :initform (bt:make-lock "taskmaster-master")
     :reader taskmaster-master-lock
@@ -151,12 +151,7 @@ implementations."))
     (when (eq (taskmaster-status taskmaster) :running)
       (send taskmaster `(:shutdown) :blockp nil))))
 
-(defgeneric start-thread (context thunk &key))
-
-(defmethod start-thread ((taskmaster thread-pooling-taskmaster) thunk &key name)
-  (declare (ignorable taskmaster))
-  (bt:make-thread thunk :name name))
-
+;; NB: by using the send and recv gf's, we provide a specialization point.
 (defmethod send ((taskmaster thread-pooling-taskmaster) message &rest keys &key &allow-other-keys)
   (apply 'send (dispatcher-channel taskmaster) message keys))
 

@@ -10,6 +10,7 @@
    #:*default-max-accept-count*
    #:*default-max-thread-count*
    #:*hunchentoot-stream*
+   #:acceptor-process
    #:handler-case*
    #:send-service-unavailable-reply)
   (:export
