@@ -143,7 +143,7 @@ then the reply will be HTTP 503."))
   (bt:with-lock-held ((taskmaster-master-lock taskmaster))
     (ecase (taskmaster-status taskmaster)
       ((:stopped :stopping)) ;; no active dispatcher to receive a message
-      ((:running) (dispatcher-send taskmaster `(:shutdown) :blockp t)))))
+      ((:running) (dispatcher-send taskmaster `(:shutdown) :blockp nil)))))
 
 ;; NB: by using the send and recv gf's, we provide a specialization point.
 (defgeneric dispatcher-send (taskmaster message &key &allow-other-keys)
@@ -174,7 +174,7 @@ then the reply will be HTTP 503."))
                            (acceptor-port (taskmaster-acceptor taskmaster))))))))
 
 (defmethod handle-incoming-connection ((taskmaster thread-pooling-taskmaster) connection)
-  (dispatcher-send taskmaster `(:process-connection ,connection)))
+  (dispatcher-send taskmaster `(:process-connection ,connection) :blockp nil))
 
 (defun mark-worker-ready (taskmaster worker-id chan)
   ;; POST: the worker has been removed from the busy-workers and pushed onto the available-workers
@@ -192,7 +192,7 @@ then the reply will be HTTP 503."))
 
 (defun get-worker-busy-on-connection (taskmaster worker-id channel connection)
   ;; POST: the worker is added to the busy-workers
-  (send channel `(:process-connection ,connection) :blockp t)
+  (send channel `(:process-connection ,connection) :blockp nil)
   (mark-worker-busy taskmaster worker-id connection channel))
 
 (defmethod too-many-taskmaster-requests ((taskmaster thread-pooling-taskmaster) connection)
@@ -208,7 +208,7 @@ then the reply will be HTTP 503."))
               (process-connection (taskmaster-acceptor taskmaster) connection))
              ((list :shutdown)
               (return)))
-           (dispatcher-send taskmaster `(:worker-ready ,worker-id ,channel) :blockp t)))
+           (dispatcher-send taskmaster `(:worker-ready ,worker-id ,channel) :blockp nil)))
 
 (defgeneric next-worker-id (taskmaster))
 (defmethod next-worker-id ((taskmaster thread-pooling-taskmaster))
@@ -282,7 +282,9 @@ then the reply will be HTTP 503."))
            (too-many-taskmaster-requests taskmaster connection)
            (send-service-unavailable-reply taskmaster connection))
          (when (empty-p busy-workers)
-           (setf taskmaster-status :stopped)
+           (bt:with-lock-held ((taskmaster-master-lock taskmaster))
+             (setf taskmaster-status :stopped)
+             (setf (dispatcher-process taskmaster) nil))
            (return)))
         (:running
          (loop
