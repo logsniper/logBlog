@@ -1,11 +1,10 @@
 (defsystem quux-hunchentoot
-  :depends-on (:hunchentoot ;; we extend it -- we depend on hunchentoot 1.2.15 + patch
-               ;; see https://github.com/edicl/hunchentoot/pull/52
+  :depends-on ((:version :hunchentoot "1.2.17")
                :alexandria ;; for various utilities
-               #-asdf3 :asdf-driver ;; for various utilities
-               :bordeaux-threads ;;
+               #-asdf3 :uiop ;; for various utilities
+               :bordeaux-threads ;; for threads
                :lil ;; for FIFO queues
-               :chanl ;; for communication channels
+               :lparallel ;; for communication channels
                :optima) ;; for parsing messages sent over channels
   :components
   ((:file "pkgdcl")

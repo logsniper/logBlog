@@ -1,0 +1,9 @@
+quux-hunchentoot
+================
+
+
+TODO
+----
+
+Have an acceptor that listens on existing connections
+so that scheduled work is done per-request as opposed to per-connection.
