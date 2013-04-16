@@ -18,5 +18,6 @@
    #:handler-case*
    #:send-service-unavailable-reply)
   (:export
+   #:make-channel #:channel-send #:channel-recv
    #:start-thread
    #:thread-pooling-taskmaster))

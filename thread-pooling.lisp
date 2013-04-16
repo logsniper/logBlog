@@ -168,15 +168,22 @@ then the reply will be HTTP 503."))
       (when dispatcher-process
         (dispatcher-send taskmaster '(:shutdown))))))
 
+(defun channel-send (channel message)
+  (lparallel.queue:push-queue message (lparallel.kernel::channel-queue channel)))
+
+(defun channel-recv (channel &key (blockp t))
+  (let ((q (lparallel.kernel::channel-queue channel)))
+    (if blockp
+        (lparallel.queue:pop-queue q)
+        (lparallel.queue:try-pop-queue q))))
+
 (defgeneric dispatcher-send (taskmaster message &key &allow-other-keys)
   (:method ((taskmaster thread-pooling-taskmaster) message &key &allow-other-keys)
-    (lparallel.queue:push-queue
-     message
-     (lparallel.kernel::channel-queue (taskmaster-dispatcher-channel taskmaster)))))
+    (channel-send (taskmaster-dispatcher-channel taskmaster) message)))
 
 (defgeneric dispatcher-recv (taskmaster &key &allow-other-keys)
   (:method ((taskmaster thread-pooling-taskmaster) &key &allow-other-keys)
-    (receive-result (taskmaster-dispatcher-channel taskmaster))))
+    (channel-recv (taskmaster-dispatcher-channel taskmaster))))
 
 (defmethod execute-acceptor ((taskmaster thread-pooling-taskmaster))
   (with-taskmaster-accessors
