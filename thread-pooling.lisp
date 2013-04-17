@@ -185,37 +185,38 @@ then the reply will be HTTP 503."))
   (:method ((taskmaster thread-pooling-taskmaster) &key &allow-other-keys)
     (channel-recv (taskmaster-dispatcher-channel taskmaster))))
 
-(defmethod execute-acceptor ((taskmaster thread-pooling-taskmaster))
-  (with-taskmaster-accessors
-      (master-lock
-       max-accept-count max-thread-count
-       acceptor
-       dispatcher-process dispatcher-channel
-       context bindings thread-pool)
+(defmethod execute-acceptor :around ((taskmaster thread-pooling-taskmaster))
+  (with-taskmaster-accessors (master-lock
+                              thread-pool context bindings
+                              max-thread-count acceptor)
       taskmaster
     (bt:with-lock-held (master-lock)
+      (assert (null thread-pool))
       (let ((address (or (acceptor-address acceptor) "*"))
             (port (acceptor-port acceptor)))
-        (assert (null thread-pool))
-        (assert (null dispatcher-process))
-        (assert (null dispatcher-channel))
         (setf thread-pool
               (make-kernel (or max-thread-count most-positive-fixnum)
                            :name (format nil "quux-hunchentoot-thread-pool-~A:~A" address port)
-                           :context context :bindings bindings))
-        (with-thread-pool (taskmaster)
-          (setf dispatcher-channel (make-channel))
-          (setf (acceptor-process taskmaster)
-                (start-thread
-                 taskmaster
-                 (lambda () (accept-connections (taskmaster-acceptor taskmaster)))
-                 :name (format nil "quux-hunchentoot-listener-~A:~A" address port)))
-          (setf dispatcher-process
-                (start-thread
-                 taskmaster
-                 (lambda () (run-dispatcher-thread taskmaster))
-                 :name (format nil "quux-hunchentoot-dispatcher-~A:~A" address port))))))))
+                           :context context :bindings bindings)))
+      (with-thread-pool (taskmaster)
+        (call-next-method)))))
 
+(defmethod execute-acceptor ((taskmaster thread-pooling-taskmaster))
+  (with-taskmaster-accessors
+      (acceptor dispatcher-process dispatcher-channel) taskmaster
+    (let ((address (or (acceptor-address acceptor) "*"))
+          (port (acceptor-port acceptor)))
+      (setf dispatcher-channel (make-channel))
+      (setf (acceptor-process taskmaster)
+            (start-thread
+             taskmaster
+             (lambda () (accept-connections (taskmaster-acceptor taskmaster)))
+             :name (format nil "quux-hunchentoot-listener-~A:~A" address port)))
+      (setf dispatcher-process
+            (start-thread
+             taskmaster
+             (lambda () (run-dispatcher-thread taskmaster))
+             :name (format nil "quux-hunchentoot-dispatcher-~A:~A" address port))))))
 
 (defmethod handle-incoming-connection ((taskmaster thread-pooling-taskmaster) connection)
   (dispatcher-send taskmaster `(:process-connection ,connection) :blockp nil))
@@ -264,7 +265,8 @@ then the reply will be HTTP 503."))
            (setf thread-pool nil
                  dispatcher-channel nil
                  dispatcher-process nil
-                 (acceptor-process taskmaster) nil)))
+                 (acceptor-process taskmaster) nil)
+           (return)))
         ;;; Do whatever work we can, while we can
         (loop
           (cond
