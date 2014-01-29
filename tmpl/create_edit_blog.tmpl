@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Blog Creator & Editor</title>
+  <style type="text/css">
+body {
+    margin-left: 10%;
+    margin-right: 10%;
+    background: white;
+    color: black;
+}
+
+h1 {
+    font-variant: small-caps;
+    border-bottom: 2px solid black;
+    color: darkblue;
+}
+
+h2 {
+    font-variant: small-caps;
+    color: darkblue;
+}
+
+textarea {
+  width: 80em; height: 8em;
+}
+  </style>
+</head>
+<body>
+  <h1>Blog Creator & Editor</h1>
+
+  <form method="post" action="Create_Edit">
+    <table>
+    <tr>
+      <td>BlogID:<!-- tmpl_var blogid --></td>
+      <input type="hidden" name="blogid" value="<!-- tmpl_var blogid -->"/>
+    </tr>
+    <tr>
+      <td>Title:<input type="text" name="title" value="<!-- tmpl_var title -->"/></td>
+    </tr>
+  
+    <!-- tmpl_loop body-paragraph -->
+    <tr>
+      <td>
+        Paragraph: <!-- tmpl_var sequence -->
+        <input type="radio" name="para_type_<!-- tmpl_var sequence -->" value="head" /> head
+        <input type="radio" name="para_type_<!-- tmpl_var sequence -->" value="body" /> text
+        <input type="radio" name="para_type_<!-- tmpl_var sequence -->" value="image" /> image
+      </td>
+    </tr>
+    <tr>
+      <td><textarea name="para_text_<!-- tmpl_var sequence -->"><!-- tmpl_var content --></textarea></td>
+    </tr>
+    <!-- /tmpl_loop -->
+    </table>
+    <input type="submit" value="save"/>
+  </form>
+</body>
+</html>
