@@ -43,9 +43,12 @@ textarea {
     <tr>
       <td>
         Paragraph: <!-- tmpl_var sequence -->
-        <input type="radio" name="para_type_<!-- tmpl_var sequence -->" value="head" /> head
-        <input type="radio" name="para_type_<!-- tmpl_var sequence -->" value="body" /> text
-        <input type="radio" name="para_type_<!-- tmpl_var sequence -->" value="image" /> image
+        <input type="radio" name="para_type_<!-- tmpl_var sequence -->" value="ptype-head"
+                <!-- tmpl_if headp -->checked="true"<!-- /tmpl_if --> /> head
+        <input type="radio" name="para_type_<!-- tmpl_var sequence -->" value="ptype-body"
+                <!-- tmpl_if bodyp -->checked="true"<!-- /tmpl_if --> /> text
+        <input type="radio" name="para_type_<!-- tmpl_var sequence -->" value="ptype-image"
+                <!-- tmpl_if imagep -->checked="true"<!-- /tmpl_if --> /> image
       </td>
     </tr>
     <tr>

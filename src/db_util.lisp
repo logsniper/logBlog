@@ -8,8 +8,9 @@
            ((content :initarg :content
                      :accessor content
                      :initform "")
-            (para-type :initarg :para-type ; value of type : head, body, image
-                       :accessor para-type)))
+            (para-type :initarg :para-type ; value of type : 'ptype-head, 'ptype-body, 'ptype-image
+                       :accessor para-type
+                       :initform 'ptype-body)))
 
 (defpclass message-post ()
            ((author :initarg :author
@@ -31,6 +32,8 @@
    (title :initarg :title
           :accessor title
           :initform "")
+   (tags :initarg :tags
+         :accessor tags)
    (body :initarg :body ; list of blog-paragraph
          :accessor body)
    (timestamp :initarg :timestamp
@@ -38,9 +41,12 @@
               :initform (get-universal-time)
               :index t)
    (messages :initarg :messages ; list of message-post
-                 :accessor messages)
+             :accessor messages
+             :initform ())
    (visitor-count :initform 0
-                  :accessor visitor-count)))
+                  :accessor visitor-count)
+   (last-modified-time :initform (get-universal-time)
+                       :accessor last-modified-time)))
 
 ; Container for all our blog posts
 (defvar *blog-posts* (or (get-from-root "blog-posts")
@@ -61,7 +67,7 @@
     (1+ newest-blogid)))
 
 (defun get-empty-blog ()
-  (make-instance 'blog-post :blogid (get-blogid) :body (loop for idx from 0 to 20 collect (make-instance 'blog-paragraph))))
+  (make-instance 'blog-post :blogid (get-blogid) :body (loop for idx from 0 to *max-paragraph-num* collect (make-instance 'blog-paragraph))))
 
 (defun get-blog (blogid)
   (if blogid
@@ -69,7 +75,6 @@
     nil))
 
 (defun get-non-nil-blog (blogid)
-  (format t "blogid=~a~%" blogid)
   (let ((blog (get-blog blogid)))
     (if blog blog (get-empty-blog))))
 
@@ -77,9 +82,12 @@
   (let ((old-blog (get-blog (blogid blog))))
     (if old-blog
       (progn
-        (insert-item old-blog *blog-posts*)
+        (insert-item old-blog *blog-posts-old-version*)
         (remove-item old-blog *blog-posts*))))
   (insert-item blog *blog-posts*))
+
+(defun add-visitor-count (blog)
+  (if blog (incf (visitor-count blog))))
 
 (defun add-message (author content ip-addr)
   (unless (or (equal author nil) (string= author "") (equal content nil) (string= content ""))

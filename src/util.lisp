@@ -15,3 +15,10 @@
       (parse-integer str)
       (SB-INT:SIMPLE-PARSE-ERROR (spe) -1))
     -1))
+
+(defun string-to-symbol (str)
+  (handler-case
+    (multiple-value-bind (ret-val other)
+      (intern (string-upcase str))
+      ret-val)
+    (TYPE-ERROR (te) 'XXX)))

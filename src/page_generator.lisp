@@ -1,12 +1,29 @@
 (in-package :logsniper.logBlog)
 
 (setq html-template:*default-template-pathname* *template-path*)
+(setq html-template:*string-modifier* #'identity)
+
+(defun decorate-paragraph (para)
+  (with-output-to-string (stream)
+    (case (para-type para)
+      (ptype-head (format stream "<h2>~a</h2>~%" (content para)))
+      (ptype-body (format stream "<div>~a</div>~%" (content para)))
+      (ptype-image (format stream "<img src=\"~a\"/>~%" (content para)))
+      (t (format stream "<div>failed to judge para-type.</div>~%")))
+    stream))
 
 (defun merge-paragraphs (blog)
   (let ((body ""))
     (loop for para in (body blog)
-          do (setq body (concatenate 'string body (content para))))
+          do (setq body (concatenate 'string body (decorate-paragraph para))))
     body))
+
+(defun generate-404-page ()
+  (with-output-to-string (stream)
+    (html-template:fill-and-print-template
+      #P"./404.tmpl"
+      ()
+      :stream stream)))
 
 (defun generate-index-page ()
   "Generate the index page on which lists all the blog posts"
@@ -24,13 +41,27 @@
   (let ((blog (get-blog (string-to-int (hunchentoot:get-parameter "blogid")))))
     (if blog
       (with-output-to-string (stream)
+        (let ((new-msg (add-message (hunchentoot:post-parameter "author")
+                                    (hunchentoot:post-parameter "content")
+                                    (hunchentoot:real-remote-addr))))
+          (if new-msg (push new-msg (messages blog))))
+        (add-visitor-count blog)
         (html-template:fill-and-print-template
           #P"./view_blog.tmpl"
           (list :blogid (blogid blog)
                 :title (title blog)
                 :timestamp (timestamp-to-string (timestamp blog))
-                :body (merge-paragraphs blog))
-          :stream stream)))))
+                :last-modified-time (timestamp-to-string (last-modified-time blog))
+                :visitor-count (visitor-count blog)
+                :body (merge-paragraphs blog)
+                :messages (loop for message-post in (messages blog)
+                                collect (list :author (author message-post)
+                                              :content (content message-post)
+                                              :timestamp (timestamp-to-string (timestamp message-post))
+                                              :ip-addr (ip-addr message-post))))
+
+          :stream stream))
+      (generate-404-page))))
 
 (defun generate-message-page ()
   (add-message (hunchentoot:post-parameter "author")
@@ -50,19 +81,22 @@
 (defun parse-blog-submitter (blog)
   (let ((blog-title (hunchentoot:post-parameter "title"))
         (blog-body (list)))
-    (loop for idx from 0 to 20
+    (loop for idx from 0 to *max-paragraph-num*
           do (let ((ptext (hunchentoot:post-parameter (concatenate 'string "para_text_" (write-to-string idx))))
                    (ptype (hunchentoot:post-parameter (concatenate 'string "para_type_" (write-to-string idx)))))
                 (if (and ptext (not (string= ptext "")))
                   (progn
                     (if (not ptype) (setq ptype "body"))
-                    (push (make-instance 'blog-paragraph :content ptext :para-type ptype) blog-body)))))
-    (if (or blog-title blog-body)
+                    (push (make-instance 'blog-paragraph :content ptext :para-type (string-to-symbol ptype)) blog-body)))))
+    (if (not (and 
+               (or 
+                 (not blog-title) 
+                 (string= "" blog-title)) 
+               (equal () blog-body)))
       (progn
-        (format t "saving blogid : ~a~%." (blogid blog))
         (setf (title blog) blog-title)
         (setf (body blog) (nreverse blog-body))
-        ;(setf (blogid blog) (get-blogid))
+        (setf (last-modified-time blog) (get-universal-time))
         (save-blog blog)))))
 
 (defun generate-blog-editor-page ()
@@ -75,17 +109,13 @@
         (list :title (title blog)
               :blogid (blogid blog)
               :body-paragraph
-              (loop for idx from 0 to 20
+              (loop for idx from 0 to *max-paragraph-num*
                     for para in (body blog)
-                    collect (list :sequence idx :content (content para))))
+                    collect (list :sequence idx :content (content para)
+                                  :headp (equal (para-type para) 'ptype-head)
+                                  :bodyp (equal (para-type para) 'ptype-body)
+                                  :imagep (equal (para-type para) 'ptype-image))))
         :stream stream))))
-
-(defun generate-404-page ()
-  (with-output-to-string (stream)
-    (html-template:fill-and-print-template
-      #P"./404.tmpl"
-      ()
-      :stream stream)))
 
 (setq hunchentoot:*dispatch-table*
       (list 
