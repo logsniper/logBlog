@@ -9,7 +9,7 @@
       (ptype-head (format stream "<h2>~a</h2>~%" (content para)))
       (ptype-body (format stream "<div>~a</div>~%" (content para)))
       (ptype-image (format stream "<img src=\"~a\"/>~%" (content para)))
-      (t (format stream "<div>failed to judge para-type.</div>~%")))
+      (t (format t "failed to judge para-type:~a.~%" (string (para-type para)))))
     stream))
 
 (defun merge-paragraphs (blog)
@@ -18,15 +18,47 @@
           do (setq body (concatenate 'string body (decorate-paragraph para))))
     body))
 
-(defun generate-404-page ()
-  (with-output-to-string (stream)
-    (html-template:fill-and-print-template
-      #P"./404.tmpl"
-      ()
-      :stream stream)))
+(defmacro def-generate-static-page (func-name file-name)
+  `(defun ,func-name ()
+     (with-cookie-user (userinfo)
+        (with-output-to-string (stream)
+          (html-template:fill-and-print-template
+            ,file-name
+            ()
+            :stream stream)))))
+
+(def-generate-static-page generate-register-page #P"./register.tmpl")
+(def-generate-static-page generate-login-page #P"./login.tmpl")
+(def-generate-static-page generate-404-page #P"./404.tmpl")
+
+(defun generate-register-response-page ()
+  (with-cookie-user (cookie-userinfo)
+    (let* ((password (hunchentoot:post-parameter "password"))
+           (email (hunchentoot:post-parameter "email"))
+           (author (hunchentoot:post-parameter "author"))
+           (userinfo (get-user email)))
+      (if (and author email password)
+        (with-output-to-string (stream)
+          (if (not userinfo)
+            (progn (add-user email author password)
+                   (update-user-info-cookie (get-user email))
+                   (html-template:fill-and-print-template #P"./reg_response.tmpl"
+                                                          (list :succ t)
+                                                          :stream stream))
+            (if (not (password userinfo))
+              (progn (update-user-info-db userinfo author password)
+                     (update-user-info-cookie userinfo)
+                     (html-template:fill-and-print-template #P"./reg_response.tmpl"
+                                                            (list :succ t)
+                                                            :stream stream))
+              (html-template:fill-and-print-template #P"./reg_response.tmpl"
+                                                   (list :succ nil)
+                                                   :stream stream))))
+        (generate-404-page)))))
 
 (defun generate-index-page ()
   "Generate the index page on which lists all the blog posts"
+  (with-cookie-user (userinfo)
   (with-output-to-string (stream)
     (html-template:fill-and-print-template
       #P"./index.tmpl"
@@ -35,13 +67,25 @@
                   collect (list :host-address *host-address*
                                 :title (title blog-post) :blogid (blogid blog-post)
                                 :body (merge-paragraphs blog-post))))
-      :stream stream)))
+      :stream stream))))
+
+(defun generate-login-response-page ()
+  (with-cookie-user (cookie-userinfo)
+    (let* ((password (hunchentoot:post-parameter "password"))
+           (email (hunchentoot:post-parameter "email"))
+           (userinfo (get-user email)))
+      (if (and email password userinfo (string= (md5sum password) (password userinfo)))
+        (progn (update-user-info-cookie userinfo)
+               (generate-index-page))
+        (generate-login-page)))))
 
 (defun generate-blog-view-page ()
+  (with-cookie-user (userinfo)
   (let ((blog (get-blog (string-to-int (hunchentoot:get-parameter "blogid")))))
     (if blog
       (with-output-to-string (stream)
         (let ((new-msg (add-message (hunchentoot:post-parameter "author")
+                                    (hunchentoot:post-parameter "email")
                                     (hunchentoot:post-parameter "content")
                                     (hunchentoot:real-remote-addr))))
           (if new-msg (push new-msg (messages blog))))
@@ -54,6 +98,8 @@
                 :last-modified-time (timestamp-to-string (last-modified-time blog))
                 :visitor-count (visitor-count blog)
                 :body (merge-paragraphs blog)
+                :author (if userinfo (author userinfo) "")
+                :email (if userinfo (email userinfo) "")
                 :messages (loop for message-post in (messages blog)
                                 collect (list :author (author message-post)
                                               :content (content message-post)
@@ -61,22 +107,26 @@
                                               :ip-addr (ip-addr message-post))))
 
           :stream stream))
-      (generate-404-page))))
+      (generate-404-page)))))
 
 (defun generate-message-page ()
+  (with-cookie-user (userinfo)
   (add-message (hunchentoot:post-parameter "author")
+               (hunchentoot:post-parameter "email")
                (hunchentoot:post-parameter "content")
                (hunchentoot:real-remote-addr))
   (with-output-to-string (stream)
     (html-template:fill-and-print-template
       #P"./message.tmpl"
-      (list :message-posts
+      (list :author (if userinfo (author userinfo) "")
+            :email (if userinfo (email userinfo) "")
+            :message-posts
             (loop for message-post in (nreverse (get-instances-by-range 'message-post 'timestamp nil nil))
                   collect (list :author (author message-post)
                                 :content (content message-post)
                                 :timestamp (timestamp-to-string (timestamp message-post))
                                 :ip-addr (ip-addr message-post))))
-      :stream stream)))
+      :stream stream))))
 
 (defun parse-blog-submitter (blog)
   (let ((blog-title (hunchentoot:post-parameter "title"))
@@ -86,7 +136,7 @@
                    (ptype (hunchentoot:post-parameter (concatenate 'string "para_type_" (write-to-string idx)))))
                 (if (and ptext (not (string= ptext "")))
                   (progn
-                    (if (not ptype) (setq ptype "body"))
+                    (if (not ptype) (setq ptype "ptype-body"))
                     (push (make-instance 'blog-paragraph :content ptext :para-type (string-to-symbol ptype)) blog-body)))))
     (if (not (and 
                (or 
@@ -100,6 +150,7 @@
         (save-blog blog)))))
 
 (defun generate-blog-editor-page ()
+  (with-cookie-user (userinfo)
   (let ((blog (get-non-nil-blog (string-to-int (or (hunchentoot:get-parameter "blogid")
                                                    (hunchentoot:post-parameter "blogid"))))))
     (parse-blog-submitter blog)
@@ -115,12 +166,16 @@
                                   :headp (equal (para-type para) 'ptype-head)
                                   :bodyp (equal (para-type para) 'ptype-body)
                                   :imagep (equal (para-type para) 'ptype-image))))
-        :stream stream))))
+        :stream stream)))))
 
 (setq hunchentoot:*dispatch-table*
       (list 
         (hunchentoot:create-regex-dispatcher "^/message$" 'generate-message-page)
         (hunchentoot:create-regex-dispatcher "^/view$" 'generate-blog-view-page)
+        (hunchentoot:create-regex-dispatcher "^/register$" 'generate-register-page)
+        (hunchentoot:create-regex-dispatcher "^/reg_response$" 'generate-register-response-page)
+        (hunchentoot:create-regex-dispatcher "^/login$" 'generate-login-page)
+        (hunchentoot:create-regex-dispatcher "^/login_response$" 'generate-login-response-page)
         (hunchentoot:create-regex-dispatcher *create-and-edit-label* 'generate-blog-editor-page)
         (hunchentoot:create-regex-dispatcher "^/$" 'generate-index-page)
         (hunchentoot:create-prefix-dispatcher "/" 'generate-404-page)))

@@ -1,63 +1,6 @@
 (in-package :logsniper.logBlog)
 (use-package :elephant)
 
-; Open the store where our data is stored
-(defvar *elephant-store* (open-store '(:clsql (:sqlite3 "./database/blog.db"))))
-
-(defclass blog-paragraph ()
-           ((content :initarg :content
-                     :accessor content
-                     :initform "")
-            (para-type :initarg :para-type ; value of type : 'ptype-head, 'ptype-body, 'ptype-image
-                       :accessor para-type
-                       :initform 'ptype-body)))
-
-(defpclass message-post ()
-           ((author :initarg :author
-                    :accessor author)
-            (content :initarg :content
-                     :accessor content)
-            (timestamp :accessor timestamp
-                       :initform (get-universal-time)
-                       :index t)
-            (ip-addr :initarg :ip-addr
-                :accessor ip-addr
-                :initform "nil")))
-
-(defpclass blog-post ()
-  ((blogid
-        :initarg :blogid
-        :accessor blogid
-        :index t)
-   (title :initarg :title
-          :accessor title
-          :initform "")
-   (tags :initarg :tags
-         :accessor tags)
-   (body :initarg :body ; list of blog-paragraph
-         :accessor body)
-   (timestamp :initarg :timestamp
-              :accessor timestamp
-              :initform (get-universal-time)
-              :index t)
-   (messages :initarg :messages ; list of message-post
-             :accessor messages
-             :initform ())
-   (visitor-count :initform 0
-                  :accessor visitor-count)
-   (last-modified-time :initform (get-universal-time)
-                       :accessor last-modified-time)))
-
-; Container for all our blog posts
-(defvar *blog-posts* (or (get-from-root "blog-posts")
-                         (let ((blog-posts (make-pset)))
-                           (add-to-root "blog-posts" blog-posts)
-                           blog-posts)))
-(defvar *blog-posts-old-version* (or (get-from-root "blog-posts-old-version")
-                         (let ((blog-posts (make-pset)))
-                           (add-to-root "blog-posts-old-version" blog-posts)
-                           blog-posts)))
-
 (defun get-blogid ()
   (let ((bloglist (pset-list *blog-posts*))
         (newest-blogid -1))
@@ -89,8 +32,14 @@
 (defun add-visitor-count (blog)
   (if blog (incf (visitor-count blog))))
 
-(defun add-message (author content ip-addr)
-  (unless (or (equal author nil) (string= author "") (equal content nil) (string= content ""))
-    (let ((newest-msg (car (nreverse (get-instances-by-range 'message-post 'timestamp nil nil)))))
-      (unless (and newest-msg (string= ip-addr (ip-addr newest-msg)) (string= content (content newest-msg)))
-        (make-instance 'message-post :author author :content content :ip-addr ip-addr)))))
+(defun get-user (email)
+  (if email
+    (find-item email *user-pset* :key #'email :test #'equal)
+    nil))
+
+(defun add-message (author email content ip-addr)
+  (if (update-user-info)
+    (unless (or (not author) (string= author "") (not email) (string= email "") (equal content nil) (string= content ""))
+      (let ((newest-msg (car (nreverse (get-instances-by-range 'message-post 'timestamp nil nil)))))
+        (unless (and newest-msg (string= email (email newest-msg)) (string= content (content newest-msg)))
+          (make-instance 'message-post :author author :email email :content content :ip-addr ip-addr))))))

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>
+  <!-- tmpl_if succ -->
+  Register Succeeded
+  <!-- tmpl_else -->
+  Register failed
+  <!-- /tmpl_if -->
+  </title>
+  <style type="text/css">
+body {
+    margin-left: 10%;
+    margin-right: 10%;
+    background: white;
+    color: black;
+}
+
+h1 {
+    font-variant: small-caps;
+    border-bottom: 2px solid black;
+    color: darkblue;
+}
+
+h2 {
+    font-variant: small-caps;
+    color: darkblue;
+}
+
+textarea {
+  width: 30em; height: 3em;
+}
+  </style>
+</head>
+<body>
+  <!-- tmpl_if succ -->
+  <h1>Register Succeeded</h1>
+  <!-- tmpl_else -->
+  <h1>Register Failed</h1>
+  Because this Email address has already been here.
+  <!-- /tmpl_if -->
+
+</body>
+</html>
