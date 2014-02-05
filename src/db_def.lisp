@@ -12,8 +12,21 @@
                        :accessor para-type
                        :initform 'ptype-body)))
 
+(defpclass items-counter ()
+           ((blog-count :initform 0
+                        :accessor blog-count)
+            (msg-count :initform 0
+                       :accessor msg-count)
+            (user-count :initform 0
+                        :accessor user-count)
+            (pageview-count :initform 0
+                            :accessor pageview-count)))
+
 (defpclass message-post ()
-           ((author :initarg :author
+           ((msgid :initarg :msgid
+                   :accessor msgid
+                   :index t)
+            (author :initarg :author
                     :accessor author)
             (email :initarg :email
                     :accessor email)
@@ -51,7 +64,10 @@
                        :accessor last-modified-time)))
 
 (defpclass userinfo ()
-           ((email :initarg :email
+           ((userid :initarg :userid
+                   :accessor userid
+                   :index t)
+            (email :initarg :email
                    :accessor email
                    :index t)
             (author :initarg :author
@@ -67,12 +83,22 @@
                      :initform nil)))
 
 (defmacro def-elephant-root (pset-name)
-  (with-gensyms (item pset-tag)
-                `(defvar ,pset-name (or (get-from-root ',pset-tag)
-                                        (let ((,item (make-pset)))
-                                          (add-to-root ',pset-tag ,item)
-                                          ,item)))))
+  (with-gensyms (item)
+                `(let ((pset-tag (string ',pset-name)))
+                   (defvar ,pset-name (or (get-from-root pset-tag)
+                                          (let ((,item (make-pset)))
+                                            (add-to-root pset-tag ,item)
+                                            ,item))))))
 
+(def-elephant-root *items-counter*)
 (def-elephant-root *blog-posts*)
 (def-elephant-root *blog-posts-old-version*)
 (def-elephant-root *user-pset*)
+
+(defun get-items-counter ()
+  (let ((counter (car (pset-list *items-counter*))))
+    (if (not counter)
+      (progn
+        (setq counter (make-instance 'items-counter))
+        (insert-item counter *items-counter*)))
+    counter))

@@ -42,4 +42,7 @@
     (unless (or (not author) (string= author "") (not email) (string= email "") (equal content nil) (string= content ""))
       (let ((newest-msg (car (nreverse (get-instances-by-range 'message-post 'timestamp nil nil)))))
         (unless (and newest-msg (string= email (email newest-msg)) (string= content (content newest-msg)))
-          (make-instance 'message-post :author author :email email :content content :ip-addr ip-addr))))))
+          (make-instance 'message-post :msgid (incf (msg-count (get-items-counter))) 
+                                       :author author :email email 
+                                       :content content :ip-addr ip-addr))))
+    (format t "Failed to check user info. ~a ~a~%" author email)))

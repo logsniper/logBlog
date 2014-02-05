@@ -123,6 +123,7 @@
             :message-posts
             (loop for message-post in (nreverse (get-instances-by-range 'message-post 'timestamp nil nil))
                   collect (list :author (author message-post)
+                                :msgid (msgid message-post)
                                 :content (content message-post)
                                 :timestamp (timestamp-to-string (timestamp message-post))
                                 :ip-addr (ip-addr message-post))))
