@@ -17,6 +17,11 @@
     (find-item blogid *blog-posts* :key #'blogid :test #'equal)
     nil))
 
+(defun get-message (msgid)
+  (if msgid
+    (get-instance-by-value 'message-post 'msgid msgid)
+    nil))
+
 (defun get-non-nil-blog (blogid)
   (let ((blog (get-blog blogid)))
     (if blog blog (get-empty-blog))))
@@ -37,12 +42,12 @@
     (find-item email *user-pset* :key #'email :test #'equal)
     nil))
 
-(defun add-message (author email content ip-addr)
+(defun add-message (author email content ip-addr owner-blogid)
   (if (update-user-info)
     (unless (or (not author) (string= author "") (not email) (string= email "") (equal content nil) (string= content ""))
       (let ((newest-msg (car (nreverse (get-instances-by-range 'message-post 'timestamp nil nil)))))
         (unless (and newest-msg (string= email (email newest-msg)) (string= content (content newest-msg)))
           (make-instance 'message-post :msgid (incf (msg-count (get-items-counter))) 
                                        :author author :email email 
-                                       :content content :ip-addr ip-addr))))
-    (format t "Failed to check user info. ~a ~a~%" author email)))
+                                       :content content :ip-addr ip-addr
+                                       :owner-blogid owner-blogid))))))

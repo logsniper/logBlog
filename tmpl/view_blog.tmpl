@@ -1,12 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <style type="text/css">
+body {
+    margin-left: 10%;
+    margin-right: 10%;
+    background: white;
+    color: black;
+}
+
+h1 {
+    font-variant: small-caps;
+    border-bottom: 2px solid black;
+    color: darkblue;
+}
+
+h2 {
+    font-variant: small-caps;
+    color: darkblue;
+}
+
+textarea {
+  width: 50em; height: 5em;
+}
+  </style>
   <title><!-- tmpl_var title --></title>
 </head>
 <body>
   <h1><!-- tmpl_var title --></h1>
     <div>
-      <div> blogid: <!-- tmpl_var blogid --></div>
+      <div>Blogid:<!-- tmpl_var blogid --></div>
       <div>Created on <!-- tmpl_var timestamp --></div>
       <div>Last Modified on <!-- tmpl_var last-modified-time --></div>
       <div>This article has been read for <!-- tmpl_var visitor-count --> times </div>
@@ -15,6 +38,7 @@
       </div>
     </div>
     <div>
+      <a name="messages"/>
       <div>---------------------------------------</div>
       <form method="post" action="view?blogid=<!-- tmpl_var blogid -->">
         <table>
@@ -28,15 +52,20 @@
         </tr>
         <tr>
           <td>Content:</td>
-          <td><textarea name="content"></textarea></td>
+          <!-- tmpl_if is-reply -->
+            <input type="hidden" name="rpmsg" value="<!-- tmpl_var replied-msgid -->"/>
+          <!-- /tmpl_if -->
+          <td><textarea name="content"><!-- tmpl_if is-reply -->Reply <!-- tmpl_var replied-author -->:<!-- /tmpl_if --></textarea></td>
         </tr>
         </table>
         <input type="submit" value="Submit"/>
       </form>
       <div>---------------------------------------</div>
+    <!-- tmpl_var recursive-messages -->
     <!-- tmpl_loop messages -->
       <div><!-- tmpl_var author -->: <!-- tmpl_var content --></div>
       <div><!-- tmpl_var timestamp --> @ <!-- tmpl_var ip-addr --></div>
+      <div><a href="http://<!-- tmpl_var host-address -->/view?blogid=<!-- tmpl_var blogid -->&rpmsg=<!-- tmpl_var msgid -->#messages">reply</a>
       <div>---------------------------------------</div>
     <!-- /tmpl_loop -->
     </div>

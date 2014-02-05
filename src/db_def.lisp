@@ -26,6 +26,8 @@
            ((msgid :initarg :msgid
                    :accessor msgid
                    :index t)
+            (owner-blogid :initarg :owner-blogid
+                          :accessor owner-blogid)
             (author :initarg :author
                     :accessor author)
             (email :initarg :email
@@ -37,7 +39,9 @@
                        :index t)
             (ip-addr :initarg :ip-addr
                 :accessor ip-addr
-                :initform nil)))
+                :initform nil)
+            (repliers :initform ()
+                      :accessor repliers)))
 
 (defpclass blog-post ()
   ((blogid

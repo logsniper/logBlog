@@ -79,17 +79,48 @@
                (generate-index-page))
         (generate-login-page)))))
 
+(defun recursively-decorate-message (message)
+  (if message
+    (with-output-to-string (stream)
+      (html-template:fill-and-print-template
+        #P"./recursive_message.tmpl"
+        (list :author (author message)
+              :content (content message)
+              :msgid (msgid message)
+              :timestamp (timestamp-to-string (timestamp message))
+              :ip-addr (ip-addr message)
+              :host-address *host-address*
+              :blogid (owner-blogid message)
+              :reply-list (loop for rpmsg in (repliers message)
+                                collect (list :sub-html (recursively-decorate-message rpmsg))))
+        :stream stream))))
+
+(defun recursive-messages-of-blog (blog)
+  (if (and blog (messages blog))
+    (with-output-to-string (stream)
+      (loop for msg in (messages blog)
+            do (format stream "~a~%" (recursively-decorate-message msg))))))
+
 (defun generate-blog-view-page ()
   (with-cookie-user (userinfo)
-  (let ((blog (get-blog (string-to-int (hunchentoot:get-parameter "blogid")))))
+  (let* ((blog (get-blog (string-to-int (hunchentoot:get-parameter "blogid"))))
+        (replied-msgid (string-to-int (hunchentoot:get-parameter "rpmsg")))
+        (replied-msg (get-message replied-msgid)))
     (if blog
       (with-output-to-string (stream)
-        (let ((new-msg (add-message (hunchentoot:post-parameter "author")
+        (let* ((new-msg (add-message (hunchentoot:post-parameter "author")
                                     (hunchentoot:post-parameter "email")
                                     (hunchentoot:post-parameter "content")
-                                    (hunchentoot:real-remote-addr))))
-          (if new-msg (push new-msg (messages blog))))
+                                    (hunchentoot:real-remote-addr)
+                                    (blogid blog)))
+               (replied-msgid (string-to-int (hunchentoot:post-parameter "rpmsg")))
+               (replied-msg (get-message replied-msgid))) 
+          (if new-msg
+            (if (and replied-msgid replied-msg)
+              (push new-msg (repliers replied-msg))
+              (push new-msg (messages blog)))))
         (add-visitor-count blog)
+        (format t "reply-info:~a,~a,~a~%" (and replied-msgid replied-msg) replied-msgid (if replied-msg (author replied-msg) ""))
         (html-template:fill-and-print-template
           #P"./view_blog.tmpl"
           (list :blogid (blogid blog)
@@ -100,12 +131,17 @@
                 :body (merge-paragraphs blog)
                 :author (if userinfo (author userinfo) "")
                 :email (if userinfo (email userinfo) "")
+                :is-reply (and replied-msgid replied-msg)
+                :replied-msgid replied-msgid
+                :replied-author (if replied-msg (author replied-msg) "")
+                :recursive-messages (recursive-messages-of-blog blog)
                 :messages (loop for message-post in (messages blog)
-                                collect (list :author (author message-post)
+                                collect (list :host-address *host-address*
+                                              :author (author message-post)
+                                              :msgid (msgid message-post)
                                               :content (content message-post)
                                               :timestamp (timestamp-to-string (timestamp message-post))
                                               :ip-addr (ip-addr message-post))))
-
           :stream stream))
       (generate-404-page)))))
 
@@ -114,7 +150,8 @@
   (add-message (hunchentoot:post-parameter "author")
                (hunchentoot:post-parameter "email")
                (hunchentoot:post-parameter "content")
-               (hunchentoot:real-remote-addr))
+               (hunchentoot:real-remote-addr)
+               nil)
   (with-output-to-string (stream)
     (html-template:fill-and-print-template
       #P"./message.tmpl"
