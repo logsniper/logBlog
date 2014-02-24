@@ -1,12 +1,14 @@
 <table border="1">
-<tr><td colspan="2">
-<p><!-- tmpl_var author -->: <!-- tmpl_var content --></p>
-<p><!-- tmpl_var timestamp --> @ <!-- tmpl_var ip-addr --></p>
-<p><a href="http://<!-- tmpl_var host-address -->/view?blogid=<!-- tmpl_var blogid -->&rpmsg=<!-- tmpl_var msgid -->#messages">reply</a></p>
-</td></tr>
+<tr><td rowspan="2">
+<p><!-- tmpl_var author --></p>
+<p><!-- tmpl_var timestamp --><br/>@<!-- tmpl_var ip-addr --></p>
+<p><a href="http://<!-- tmpl_var host-address -->/view?nincf=1&blogid=<!-- tmpl_var blogid -->&rpmsg=<!-- tmpl_var msgid -->#messages">reply</a></p>
+</td>
+<td>
+<!-- tmpl_var content -->
+</td>
+</tr><tr>
 <!-- tmpl_if reply-list -->
-<tr>
-<td>&nbsp;&nbsp;</td>
 <td><!-- tmpl_loop reply-list -->
 <!-- tmpl_if sub-html --><!-- tmpl_var sub-html --><!-- /tmpl_if -->
 <!-- /tmpl_loop --></td></tr>

@@ -29,6 +29,16 @@
     `(let ,(loop for n in names collect `(,n (gensym)))
             ,@body))
 
+(defun generate-salt ()
+  (random 10000000))
+
+(defun none-of-them-is-empty (&rest variables)
+  (let ((flag t))
+    (loop for var in variables
+          do (if (or (not var) (and (typep var 'string) (string= var "")))
+               (setf flag nil)))
+    flag))
+
 ; functions about md5 below comes from "http://www.cnblogs.com/eyeit/archive/2011/08/12/2142044.html"
 (defvar +letters+ "0123456789abcdef")
  

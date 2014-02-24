@@ -40,16 +40,27 @@ textarea {
     <div>
       <a name="messages"/>
       <div>---------------------------------------</div>
-      <form method="post" action="view?blogid=<!-- tmpl_var blogid -->">
+      <form method="post" action="submit_message?blogid=<!-- tmpl_var blogid -->">
         <table>
+        <!-- tmpl_if non-cookie -->
         <tr>
           <td>Nickname:</td>
-          <td><input type="text" name="author" value="<!-- tmpl_var author -->"/></td>
+          <td><input type="text" name="author"/></td>
         </tr>
         <tr>
           <td>email:</td>
-          <td><input type="text" name="email" value="<!-- tmpl_var email -->"/></td>
+          <td><input type="text" name="email"/></td>
         </tr>
+        <tr>
+          <td>password:</td>
+          <td><input type="password" name="password"/></td>
+        </tr>
+        <!-- tmpl_else -->
+        <tr>
+          <td>Nickname:</td>
+          <td><!-- tmpl_var author --></td>
+        </tr>
+        <!-- /tmpl_if -->
         <tr>
           <td>Content:</td>
           <!-- tmpl_if is-reply -->
@@ -62,12 +73,6 @@ textarea {
       </form>
       <div>---------------------------------------</div>
     <!-- tmpl_var recursive-messages -->
-    <!-- tmpl_loop messages -->
-      <div><!-- tmpl_var author -->: <!-- tmpl_var content --></div>
-      <div><!-- tmpl_var timestamp --> @ <!-- tmpl_var ip-addr --></div>
-      <div><a href="http://<!-- tmpl_var host-address -->/view?blogid=<!-- tmpl_var blogid -->&rpmsg=<!-- tmpl_var msgid -->#messages">reply</a>
-      <div>---------------------------------------</div>
-    <!-- /tmpl_loop -->
     </div>
 </body>
 </html>

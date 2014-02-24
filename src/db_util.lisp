@@ -37,17 +37,11 @@
 (defun add-visitor-count (blog)
   (if blog (incf (visitor-count blog))))
 
-(defun get-user (email)
-  (if email
-    (find-item email *user-pset* :key #'email :test #'equal)
-    nil))
-
-(defun add-message (author email content ip-addr owner-blogid)
-  (if (update-user-info)
-    (unless (or (not author) (string= author "") (not email) (string= email "") (equal content nil) (string= content ""))
-      (let ((newest-msg (car (nreverse (get-instances-by-range 'message-post 'timestamp nil nil)))))
-        (unless (and newest-msg (string= email (email newest-msg)) (string= content (content newest-msg)))
-          (make-instance 'message-post :msgid (incf (msg-count (get-items-counter))) 
-                                       :author author :email email 
-                                       :content content :ip-addr ip-addr
-                                       :owner-blogid owner-blogid))))))
+(defun add-message (content ip-addr owner-blogid)
+  (let ((userinfo (update-user-info)))
+    (if (and userinfo (none-of-them-is-empty content ip-addr owner-blogid))
+      (make-instance 'message-post :msgid (incf (msg-count (get-items-counter))) 
+                                   :author (author userinfo)
+                                   :email (email userinfo)
+                                   :content content :ip-addr ip-addr
+                                   :owner-blogid owner-blogid))))

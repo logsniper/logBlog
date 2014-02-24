@@ -76,6 +76,9 @@
                    :index t)
             (author :initarg :author
                   :accessor author)
+            (salt :initarg :salt
+                  :accessor salt
+                  :initform (generate-salt))
             (password :initarg :password
                       :accessor password
                       :initform nil)
@@ -84,7 +87,14 @@
                        :initform (get-universal-time))
             (last-ip :initarg :last-ip
                      :accessor last-ip
-                     :initform nil)))
+                     :initform nil)
+            (token :initform nil
+                   :accessor token
+                   :index t)
+            (token-expire :initform 0
+                          :accessor token-expire)
+            (forbidden :initform 0
+                       :accessor forbidden)))
 
 (defmacro def-elephant-root (pset-name)
   (with-gensyms (item)
