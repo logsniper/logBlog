@@ -2,10 +2,8 @@ a blog system by a lisp studier
 
 TODO list (sorted by importance):
     necessary:
-        log to file
+        looks better with css
     bonus:
-        upload and display images
-        303 jump
         attack defense
         blogs on different pages
         blog tag and category
@@ -18,3 +16,6 @@ Finished Jobs:
     user database
     cookie/authentication
     tree-organised comments/messages
+    log to file
+    upload and display images
+    303 jump

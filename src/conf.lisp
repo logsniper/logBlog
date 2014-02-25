@@ -11,3 +11,7 @@
 (defparameter *max-paragraph-num* 20)
 
 (defparameter *cookie-effective-period* (* 3600 24 7))
+
+(defparameter *access-log-path* #P"./log/access.log")
+
+(defparameter *message-log-path* #P"./log/message.log")

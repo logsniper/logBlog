@@ -17,7 +17,7 @@
                 (password userinfo)
                 (last-time userinfo)
                 (last-ip userinfo))
-        (format t "token:~a~%" string)
+        (log-info "[gen-token]~a" string)
         (md5sum string)))
     "none"))
 
@@ -28,9 +28,8 @@
       stream)))
 
 (defun check-authentication (userinfo password)
-  (and userinfo (or (not (password userinfo))
-                    (string= (md5sum (combine-password-salt password (salt userinfo)))
-                             (password userinfo)))))
+  (and userinfo (string= (md5sum (combine-password-salt password (salt userinfo)))
+                             (password userinfo))))
 
 (defun get-cookie-user-info ()
   (let* ((token (hunchentoot:cookie-in "token"))
@@ -46,11 +45,10 @@
     (if email
       (query-userinfo-by-email email))))
 
-(defun update-user-info-db (userinfo author password)
+(defun update-user-info-db (userinfo &key author password)
   (if author (setf (author userinfo) author))
   (if password 
-    (progn
-      (setf (password userinfo) (md5sum (combine-password-salt password (salt userinfo)))))))
+      (setf (password userinfo) (md5sum (combine-password-salt password (salt userinfo))))))
 
 (defun update-user-info-cookie (userinfo)
   (setf (token userinfo) (generate-token userinfo))
@@ -79,6 +77,7 @@
         ; if fail to check token but email&password combination is ok, it is also valid and the cookie should be updated
         (if (check-authentication userinfo-e password)
           (progn
+            (update-user-info-db userinfo-e :author author)
             (update-user-info-cookie userinfo-e)
             userinfo-e))
         ; if both token and email&password combination is invalid, but none of post items is empty, new user will be created
@@ -97,5 +96,5 @@
 (defmacro with-cookie-user ((userinfo) &body body)
   `(let ((,userinfo (get-cookie-user-info)))
      (incf (pageview-count (get-items-counter)))
-     (if ,userinfo (format t "user-info ~a ~a ~a~%" (author ,userinfo) (email ,userinfo) (last-ip ,userinfo)))
+     (if ,userinfo (log-info "[user-info]uri:~a,author:~a,email:~a,lastip:~a" (hunchentoot:request-uri*) (author ,userinfo) (email ,userinfo) (last-ip ,userinfo)))
      ,@body))

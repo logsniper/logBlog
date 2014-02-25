@@ -9,4 +9,7 @@
 
 (in-package :logsniper.logBlog)
 
-(hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port 8080))
+(defparameter acceptor (make-instance 'hunchentoot:easy-acceptor :port 8080))
+(setf (hunchentoot:acceptor-message-log-destination acceptor) *message-log-path*)
+(setf (hunchentoot:acceptor-access-log-destination acceptor) *access-log-path*)
+(hunchentoot:start acceptor)

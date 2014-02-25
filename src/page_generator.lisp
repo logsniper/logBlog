@@ -9,7 +9,7 @@
       (ptype-head (format stream "<h2>~a</h2>~%" (content para)))
       (ptype-body (format stream "<div>~a</div>~%" (content para)))
       (ptype-image (format stream "<img src=\"~a\"/>~%" (content para)))
-      (t (format t "failed to judge para-type:~a.~%" (string (para-type para)))))
+      (t (log-warning "[decorate-paragraph]failed to judge para-type:~a." (string (para-type para)))))
     stream))
 
 (defun merge-paragraphs (blog)
@@ -37,7 +37,7 @@
            (email (hunchentoot:post-parameter "email"))
            (author (hunchentoot:post-parameter "author"))
            (userinfo (query-userinfo-by-email email)))
-      (if (and author email password)
+      (if (none-of-them-is-empty author email password)
         (with-output-to-string (stream)
           (if (not userinfo)
             (progn (add-user email author password)
@@ -46,7 +46,7 @@
                                                           (list :succ t)
                                                           :stream stream))
             (if (not (password userinfo))
-              (progn (update-user-info-db userinfo author password)
+              (progn (update-user-info-db userinfo :author author :password password)
                      (update-user-info-cookie userinfo)
                      (html-template:fill-and-print-template #P"./reg_response.tmpl"
                                                             (list :succ t)
@@ -54,7 +54,7 @@
               (html-template:fill-and-print-template #P"./reg_response.tmpl"
                                                    (list :succ nil)
                                                    :stream stream))))
-        (generate-404-page)))))
+        (generate-register-page)))))
 
 (defun generate-index-page ()
   "Generate the index page on which lists all the blog posts"
@@ -76,7 +76,7 @@
            (userinfo (query-userinfo-by-email email)))
       (if (check-authentication userinfo password)
         (progn (update-user-info-cookie userinfo)
-               (generate-index-page))
+               (hunchentoot:redirect "/" :host *host-address* :protocol :http :code 303))
         (generate-login-page)))))
 
 (defun recursively-decorate-message (message)
@@ -114,6 +114,7 @@
             (if (and replied-msgid replied-msg)
               (push new-msg (repliers replied-msg))
               (push new-msg (messages blog))))
+          (log-info "[reply-info]isreply:~a,replied_author:~a" (and new-msg replied-msgid replied-msg) (if replied-msg (author replied-msg) nil))
           (hunchentoot:redirect (concatenate 'string "/view?nincf=1&blogid="
                                              (hunchentoot:get-parameter "blogid"))
                                 :host *host-address* :protocol :http :code 303))))))
@@ -128,7 +129,6 @@
       (with-output-to-string (stream)
         (unless (and not-incf-vc (> not-incf-vc 0))
           (add-visitor-count blog))
-        (format t "reply-info:~a,~a,~a~%" (and replied-msgid replied-msg) replied-msgid (if replied-msg (author replied-msg) ""))
         (html-template:fill-and-print-template
           #P"./view_blog.tmpl"
           (list :blogid (blogid blog)
@@ -213,6 +213,9 @@
 
 (setq hunchentoot:*dispatch-table*
       (list 
+        (hunchentoot:create-static-file-dispatcher-and-handler "/style.css" #P"resources/style.css")
+        (hunchentoot:create-static-file-dispatcher-and-handler "/favicon.ico" #P"resources/favicon.ico")
+        (hunchentoot:create-folder-dispatcher-and-handler "/images/" #P"images/")
         (hunchentoot:create-regex-dispatcher "^/message$" 'generate-message-page)
         (hunchentoot:create-regex-dispatcher "^/view$" 'generate-blog-view-page)
         (hunchentoot:create-regex-dispatcher "^/submit_message$" 'answer-submit-message)

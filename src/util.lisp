@@ -55,3 +55,10 @@
                      #-sbcl (with-input-from-string (stream string)
                               (md5:md5sum-stream stream)))))
 ; md5 end
+
+(defmacro def-log-macro (macro-name log-level)
+  `(defmacro ,macro-name (format-string &rest format-arguments)
+    `(hunchentoot:log-message* ,,log-level ,format-string ,@format-arguments)))
+(def-log-macro log-error :error)
+(def-log-macro log-warning :warning)
+(def-log-macro log-info :info)
