@@ -46,8 +46,8 @@
       (query-userinfo-by-email email))))
 
 (defun update-user-info-db (userinfo &key author password)
-  (if author (setf (author userinfo) author))
-  (if password 
+  (if (none-of-them-is-empty author) (setf (author userinfo) author))
+  (if (none-of-them-is-empty password)
       (setf (password userinfo) (md5sum (combine-password-salt password (salt userinfo))))))
 
 (defun update-user-info-cookie (userinfo)

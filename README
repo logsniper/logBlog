@@ -3,6 +3,7 @@ a blog system by a lisp studier
 TODO list (sorted by importance):
     necessary:
         looks better with css
+        unified error response
     bonus:
         attack defense
         blogs on different pages

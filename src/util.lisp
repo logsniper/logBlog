@@ -22,7 +22,7 @@
 
 (defun string-to-symbol (str)
   (handler-case
-    (intern (string-upcase str))
+    (find-symbol (string-upcase str) :logsniper.logBlog)
     (TYPE-ERROR () 'XXX)))
 
 (defmacro with-gensyms ((&rest names) &body body)
@@ -62,3 +62,26 @@
 (def-log-macro log-error :error)
 (def-log-macro log-warning :warning)
 (def-log-macro log-info :info)
+
+(defun split-string-by-char (str splitter)
+  (let ((first-pos -1) (len (1- (length str))))
+    (loop named str-visitor for i from 0 to len
+          do (if (char= (char str i) splitter)
+               (progn (setq first-pos i)
+                      (return-from str-visitor i))))
+    (if (= first-pos -1)
+      (list str)
+      (let ((left (subseq str 0 first-pos))
+            (right (split-string-by-char (subseq str (1+ first-pos)) splitter)))
+        (push left right)
+        right))))
+
+(defun trim-and-split (str)
+  (let ((words (split-string-by-char str #\,)))
+    (loop for word in words
+          collect (string-trim " " word))))
+
+(defun join-string-with-comma (str-list)
+  (with-output-to-string (stream)
+    (format stream "~{~a~^, ~}" str-list)
+    stream))

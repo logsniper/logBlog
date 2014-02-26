@@ -51,8 +51,9 @@
    (title :initarg :title
           :accessor title
           :initform "")
-   (tags :initarg :tags
-         :accessor tags)
+   (tags :initarg :tags ; list of tags
+         :accessor tags
+         :initform '())
    (body :initarg :body ; list of blog-paragraph
          :accessor body)
    (timestamp :initarg :timestamp

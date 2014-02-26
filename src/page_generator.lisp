@@ -56,18 +56,20 @@
                                                    :stream stream))))
         (generate-register-page)))))
 
-(defun generate-index-page ()
-  "Generate the index page on which lists all the blog posts"
+(defun generate-blog-list-page ()
+  "Generate the index page on which lists all valid blog posts"
   (with-cookie-user (userinfo)
-  (with-output-to-string (stream)
-    (html-template:fill-and-print-template
-      #P"./index.tmpl"
-      (list :blog-posts
-            (loop for blog-post in (pset-list *blog-posts*)
-                  collect (list :host-address *host-address*
-                                :title (title blog-post) :blogid (blogid blog-post)
-                                :body (merge-paragraphs blog-post))))
-      :stream stream))))
+    (let ((need-tag (hunchentoot:get-parameter "tag")))
+      (with-output-to-string (stream)
+        (html-template:fill-and-print-template
+          #P"./blog_list.tmpl"
+          (list :blog-posts
+                (loop for blog-post in (pset-list *blog-posts*)
+                      when (blog-filter-with-tag blog-post need-tag)
+                      collect (list :host-address *host-address*
+                                    :title (title blog-post) :blogid (blogid blog-post)
+                                    :body (merge-paragraphs blog-post))))
+          :stream stream)))))
 
 (defun generate-login-response-page ()
   (with-cookie-user (cookie-userinfo)
@@ -133,6 +135,7 @@
           #P"./view_blog.tmpl"
           (list :blogid (blogid blog)
                 :title (title blog)
+                :tags (join-string-with-comma (tags blog))
                 :timestamp (timestamp-to-string (timestamp blog))
                 :last-modified-time (timestamp-to-string (last-modified-time blog))
                 :visitor-count (visitor-count blog)
@@ -168,6 +171,7 @@
 
 (defun parse-blog-submitter (blog)
   (let ((blog-title (hunchentoot:post-parameter "title"))
+        (blog-tags (trim-and-split (hunchentoot:post-parameter "tags")))
         (blog-body (list)))
     (loop for idx from 0 to *max-paragraph-num*
           do (let ((ptext (hunchentoot:post-parameter (concatenate 'string "para_text_" (write-to-string idx))))
@@ -183,6 +187,7 @@
                (equal () blog-body)))
       (progn
         (setf (title blog) blog-title)
+        (setf (tags blog) blog-tags)
         (setf (body blog) (nreverse blog-body))
         (setf (last-modified-time blog) (get-universal-time))
         (save-blog blog)))))
@@ -193,9 +198,11 @@
                                                    (hunchentoot:post-parameter "blogid"))))))
     (parse-blog-submitter blog)
     (with-output-to-string (stream)
+      (log-info "[blog tags]blogid:~a,tags:~a" (blogid blog) (join-string-with-comma (tags blog)))
       (html-template:fill-and-print-template
         #P"./create_edit_blog.tmpl"
         (list :title (title blog)
+              :tags (join-string-with-comma (tags blog))
               :blogid (blogid blog)
               :body-paragraph
               (loop for idx from 0 to *max-paragraph-num*
@@ -209,13 +216,13 @@
 (defun generate-logout-page ()
   (with-cookie-user (userinfo)
     (logout userinfo)
-    (generate-index-page)))
+    (generate-blog-list-page)))
 
 (setq hunchentoot:*dispatch-table*
       (list 
         (hunchentoot:create-static-file-dispatcher-and-handler "/style.css" #P"resources/style.css")
         (hunchentoot:create-static-file-dispatcher-and-handler "/favicon.ico" #P"resources/favicon.ico")
-        (hunchentoot:create-folder-dispatcher-and-handler "/images/" #P"images/")
+        (hunchentoot:create-folder-dispatcher-and-handler "/images/" *image-path*)
         (hunchentoot:create-regex-dispatcher "^/message$" 'generate-message-page)
         (hunchentoot:create-regex-dispatcher "^/view$" 'generate-blog-view-page)
         (hunchentoot:create-regex-dispatcher "^/submit_message$" 'answer-submit-message)
@@ -225,5 +232,6 @@
         (hunchentoot:create-regex-dispatcher "^/login_response$" 'generate-login-response-page)
         (hunchentoot:create-regex-dispatcher "^/logout$" 'generate-logout-page)
         (hunchentoot:create-regex-dispatcher *create-and-edit-label* 'generate-blog-editor-page)
-        (hunchentoot:create-regex-dispatcher "^/$" 'generate-index-page)
+        (hunchentoot:create-regex-dispatcher "^/index$" 'generate-blog-list-page)
+        (hunchentoot:create-regex-dispatcher "^/$" 'generate-blog-list-page)
         (hunchentoot:create-prefix-dispatcher "/" 'generate-404-page)))

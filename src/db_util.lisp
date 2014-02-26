@@ -45,3 +45,14 @@
                                    :email (email userinfo)
                                    :content content :ip-addr ip-addr
                                    :owner-blogid owner-blogid))))
+
+(defun blog-filter-with-tag (blog need-tag)
+  ; If need-tag is not nil, this function will return whether the blog can pass this filter.
+  ; If need-tag is nil, return "pass" directly.
+  (if need-tag
+    (let ((flag nil))
+      (loop for tag in (tags blog)
+            do (if (string= need-tag tag)
+                 (setq flag t)))
+      flag)
+    t))
