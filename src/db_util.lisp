@@ -40,11 +40,18 @@
 (defun add-message (content ip-addr owner-blogid)
   (let ((userinfo (update-user-info)))
     (if (and userinfo (none-of-them-is-empty content ip-addr owner-blogid))
-      (make-instance 'message-post :msgid (incf (msg-count (get-items-counter))) 
-                                   :author (author userinfo)
-                                   :email (email userinfo)
-                                   :content content :ip-addr ip-addr
-                                   :owner-blogid owner-blogid))))
+      (let ((new-msg (make-instance 'message-post :msgid (incf (msg-count (get-items-counter))) 
+                                                  :author (author userinfo)
+                                                  :email (email userinfo)
+                                                  :content content :ip-addr ip-addr
+                                                  :owner-blogid owner-blogid)))
+        (if new-msg
+          (progn
+            (incf (msg-num (get-blog owner-blogid)))
+            (log-info "[new-msg][succ]email:~a,content:'~a',time:~a,ip:~a"
+                      (email new-msg) (content new-msg) (timestamp new-msg) (ip-addr new-msg)))
+          (log-warning "[new-msg][fail]"))
+        new-msg))))
 
 (defun blog-filter-with-tag (blog need-tag)
   ; If need-tag is not nil, this function will return whether the blog can pass this filter.
@@ -56,3 +63,14 @@
                  (setq flag t)))
       flag)
     t))
+
+(defun summarise-blog-tags ()
+  (let ((counter (make-hash-table :test #'equal)))
+    (loop for blog in (pset-list *blog-posts*)
+          do (loop for tag in (tags blog)
+                   do (if (gethash tag counter)
+                        (incf (gethash tag counter))
+                        (setf (gethash tag counter) 1))))
+    (let ((counter-list (loop for k being the hash-keys in counter using (hash-value v)
+                              collect (list k v))))
+      (sort counter-list #'> :key #'second))))

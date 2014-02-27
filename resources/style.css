@@ -1,22 +1,73 @@
 body {
     margin-left: 10%;
     margin-right: 10%;
-    background: white;
+    background: lightblue;
     color: black;
+    font-family: Monospace;
+}
+
+#navigator {
+    width: 100%;
+    margin-top: 3em;
+    margin-bottom: 3em;
 }
 
 h1 {
-    font-variant: small-caps;
-    border-bottom: 2px solid black;
+    font-size:3em;
     color: darkblue;
 }
 
 h2 {
-    font-variant: small-caps;
+    font-size:2em;
     color: darkblue;
+}
+
+p {
+    font-size:1em;
 }
 
 textarea {
     width: 50em;
     height: 5em;
+}
+
+#maininfo {
+    width: 75%;
+    display: inline;
+    float: left;
+    background: lightgrey;
+    border-style: solid;
+    border-color: grey;
+    margin: 3px 0;
+}
+#sidebar {
+    width: 20%;
+    padding: 80px 0 100px 3%;
+    display: inline;
+    float: right;
+    border-style: solid;
+    border-color: grey;
+    margin: 3px 0;
+}
+
+#content {
+    margin: 3%;
+    padding: 3%;
+    background: white;
+    border: 2px solid grey;
+}
+
+#message {
+    margin: 5px 10px;
+    padding: 3px 5px;
+    border-style: solid;
+    border-color: grey;
+}
+
+div.odd {
+    background: white;
+}
+
+div.even {
+    background: lightgrey;
 }

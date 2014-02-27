@@ -2,12 +2,10 @@ a blog system by a lisp studier
 
 TODO list (sorted by importance):
     necessary:
-        looks better with css
-        unified error response
+        looks better with css(doing)
     bonus:
         attack defense
         blogs on different pages
-        blog tag and category
         better configuration
 
 Finished Jobs:
@@ -20,3 +18,5 @@ Finished Jobs:
     log to file
     upload and display images
     303 jump
+    unified hints handler
+    blog tag and category

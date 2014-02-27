@@ -63,6 +63,8 @@
    (messages :initarg :messages ; list of message-post
              :accessor messages
              :initform ())
+   (msg-num :initform 0
+            :accessor msg-num)
    (visitor-count :initform 0
                   :accessor visitor-count)
    (last-modified-time :initform (get-universal-time)
@@ -95,7 +97,9 @@
             (token-expire :initform 0
                           :accessor token-expire)
             (forbidden :initform 0
-                       :accessor forbidden)))
+                       :accessor forbidden)
+            (manager :initform nil
+                     :accessor manager)))
 
 (defmacro def-elephant-root (pset-name)
   (with-gensyms (item)

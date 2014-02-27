@@ -7,7 +7,7 @@
   (with-output-to-string (stream)
     (case (para-type para)
       (ptype-head (format stream "<h2>~a</h2>~%" (content para)))
-      (ptype-body (format stream "<div>~a</div>~%" (content para)))
+      (ptype-body (format stream "<p>~a</p>~%" (content para)))
       (ptype-image (format stream "<img src=\"~a\"/>~%" (content para)))
       (t (log-warning "[decorate-paragraph]failed to judge para-type:~a." (string (para-type para)))))
     stream))
@@ -56,6 +56,25 @@
                                                    :stream stream))))
         (generate-register-page)))))
 
+(defun generate-sidebar ()
+  (with-output-to-string (stream)
+    (html-template:fill-and-print-template
+      #P"./sidebar.tmpl"
+      (list :host *host-address*
+            :tags (loop for item in (summarise-blog-tags)
+                        collect (list :tag (first item)
+                                      :count (second item))))
+      :stream stream)))
+
+(defun generate-tags-linker (blog)
+  (with-output-to-string (stream)
+    (html-template:fill-and-print-template
+      #P"./tags_linker.tmpl"
+      (list :host *host-address*
+            :tags (loop for tag in (tags blog)
+                        collect (list :tag tag)))
+      :stream stream)))
+
 (defun generate-blog-list-page ()
   "Generate the index page on which lists all valid blog posts"
   (with-cookie-user (userinfo)
@@ -64,11 +83,17 @@
         (html-template:fill-and-print-template
           #P"./blog_list.tmpl"
           (list :blog-posts
-                (loop for blog-post in (pset-list *blog-posts*)
-                      when (blog-filter-with-tag blog-post need-tag)
-                      collect (list :host-address *host-address*
-                                    :title (title blog-post) :blogid (blogid blog-post)
-                                    :body (merge-paragraphs blog-post))))
+                (nreverse
+                  (loop for blog-post in (pset-list *blog-posts*)
+                        when (blog-filter-with-tag blog-post need-tag)
+                        collect (list :host-address *host-address*
+                                      :title (title blog-post)
+                                      :blogid (blogid blog-post)
+                                      :time (timestamp-to-string (timestamp blog-post))
+                                      :msg-num (msg-num blog-post)
+                                      :visitor-count (visitor-count blog-post)
+                                      :tags (generate-tags-linker blog-post))))
+                :sidebar (generate-sidebar))
           :stream stream)))))
 
 (defun generate-login-response-page ()
@@ -78,23 +103,23 @@
            (userinfo (query-userinfo-by-email email)))
       (if (check-authentication userinfo password)
         (progn (update-user-info-cookie userinfo)
-               (hunchentoot:redirect "/" :host *host-address* :protocol :http :code 303))
-        (generate-login-page)))))
+               (hunchentoot:redirect "/hint?v=11" :host *host-address* :protocol :http :code 303))
+        (hunchentoot:redirect "/hint?v=12" :host *host-address* :protocol :http :code 303)))))
 
-(defun recursively-decorate-message (message)
+(defun recursively-decorate-message (message &key (depth 1))
   (if message
     (with-output-to-string (stream)
       (html-template:fill-and-print-template
         #P"./recursive_message.tmpl"
-        (list :author (author message)
+        (list :hierarchy (if (oddp depth) "odd" "even")
+              :author (author message)
               :content (content message)
               :msgid (msgid message)
               :timestamp (timestamp-to-string (timestamp message))
-              :ip-addr (ip-addr message)
               :host-address *host-address*
               :blogid (owner-blogid message)
               :reply-list (loop for rpmsg in (repliers message)
-                                collect (list :sub-html (recursively-decorate-message rpmsg))))
+                                collect (list :sub-html (recursively-decorate-message rpmsg :depth (1+ depth)))))
         :stream stream))))
 
 (defun recursive-messages-of-blog (blog)
@@ -135,10 +160,11 @@
           #P"./view_blog.tmpl"
           (list :blogid (blogid blog)
                 :title (title blog)
-                :tags (join-string-with-comma (tags blog))
+                :tags (generate-tags-linker blog)
                 :timestamp (timestamp-to-string (timestamp blog))
                 :last-modified-time (timestamp-to-string (last-modified-time blog))
                 :visitor-count (visitor-count blog)
+                :msg-num (msg-num blog)
                 :body (merge-paragraphs blog)
                 :non-cookie (not userinfo)
                 :author (if userinfo (author userinfo) "")
@@ -146,7 +172,8 @@
                 :is-reply (and replied-msgid replied-msg)
                 :replied-msgid replied-msgid
                 :replied-author (if replied-msg (author replied-msg) "")
-                :recursive-messages (recursive-messages-of-blog blog))
+                :recursive-messages (recursive-messages-of-blog blog)
+                :sidebar (generate-sidebar))
           :stream stream))
       (generate-404-page)))))
 
@@ -194,29 +221,56 @@
 
 (defun generate-blog-editor-page ()
   (with-cookie-user (userinfo)
-  (let ((blog (get-non-nil-blog (string-to-int (or (hunchentoot:get-parameter "blogid")
-                                                   (hunchentoot:post-parameter "blogid"))))))
-    (parse-blog-submitter blog)
-    (with-output-to-string (stream)
-      (log-info "[blog tags]blogid:~a,tags:~a" (blogid blog) (join-string-with-comma (tags blog)))
-      (html-template:fill-and-print-template
-        #P"./create_edit_blog.tmpl"
-        (list :title (title blog)
-              :tags (join-string-with-comma (tags blog))
-              :blogid (blogid blog)
-              :body-paragraph
-              (loop for idx from 0 to *max-paragraph-num*
-                    for para in (body blog)
-                    collect (list :sequence idx :content (content para)
-                                  :headp (equal (para-type para) 'ptype-head)
-                                  :bodyp (equal (para-type para) 'ptype-body)
-                                  :imagep (equal (para-type para) 'ptype-image))))
-        :stream stream)))))
+    (if (not (manager userinfo))
+      (generate-hint-response-page)
+      (let ((blog (get-non-nil-blog (string-to-int (or (hunchentoot:get-parameter "blogid")
+                                                       (hunchentoot:post-parameter "blogid"))))))
+        (parse-blog-submitter blog)
+        (with-output-to-string (stream)
+          (log-info "[blog tags]blogid:~a,tags:~a" (blogid blog) (join-string-with-comma (tags blog)))
+          (html-template:fill-and-print-template
+            #P"./create_edit_blog.tmpl"
+            (list :title (title blog)
+                  :tags (join-string-with-comma (tags blog))
+                  :blogid (blogid blog)
+                  :body-paragraph
+                  (loop for idx from 0 to *max-paragraph-num*
+                        for para in (body blog)
+                        collect (list :sequence idx :content (content para)
+                                      :headp (equal (para-type para) 'ptype-head)
+                                      :bodyp (equal (para-type para) 'ptype-body)
+                                      :imagep (equal (para-type para) 'ptype-image))))
+            :stream stream))))))
 
 (defun generate-logout-page ()
   (with-cookie-user (userinfo)
     (logout userinfo)
-    (generate-blog-list-page)))
+    (hunchentoot:redirect "/hint?v=31" :host *host-address* :protocol :http :code 303)))
+
+(defun get-hintinfo-by-id (hintid)
+  (case hintid
+    (1 "Register success.")
+    (2 "Register failed. Your Email has already existed.")
+    (3 "Register failed. Name/Email/Password cannot be empty.")
+    (11 "Login success.")
+    (12 "Login failed. Your Email&Password combination is invalid.")
+    (22 "Sorry, this blog cannot be accessed.")
+    (31 "Logout success.")
+    (-1 "Page not found.")
+    (t "Unknown hint number. Please contact the blogger(logsniper@outlook.com)")))
+
+(defun generate-hint-response-page ()
+  (with-cookie-user (userinfo)
+    (let ((hintid (string-to-int (hunchentoot:get-parameter "v")))
+          (refer-url (hunchentoot:referer)))
+      (with-output-to-string (stream)
+        (log-info "[hint]hintid:~a,refer:~a" hintid refer-url)
+        (html-template:fill-and-print-template
+          #P"./hint.tmpl"
+          (list :hintinfo (get-hintinfo-by-id hintid)
+                :refer-url refer-url
+                :main-page *host-address*)
+          :stream stream)))))
 
 (setq hunchentoot:*dispatch-table*
       (list 
@@ -231,7 +285,8 @@
         (hunchentoot:create-regex-dispatcher "^/login$" 'generate-login-page)
         (hunchentoot:create-regex-dispatcher "^/login_response$" 'generate-login-response-page)
         (hunchentoot:create-regex-dispatcher "^/logout$" 'generate-logout-page)
+        (hunchentoot:create-regex-dispatcher "^/hint$" 'generate-hint-response-page)
         (hunchentoot:create-regex-dispatcher *create-and-edit-label* 'generate-blog-editor-page)
         (hunchentoot:create-regex-dispatcher "^/index$" 'generate-blog-list-page)
         (hunchentoot:create-regex-dispatcher "^/$" 'generate-blog-list-page)
-        (hunchentoot:create-prefix-dispatcher "/" 'generate-404-page)))
+        (hunchentoot:create-prefix-dispatcher "/" 'generate-hint-response-page)))

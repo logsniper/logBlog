@@ -1,16 +1,12 @@
-<table border="1">
-<tr><td rowspan="2">
-<p><!-- tmpl_var author --></p>
-<p><!-- tmpl_var timestamp --><br/>@<!-- tmpl_var ip-addr --></p>
+<div id=message class=<!-- tmpl_var hierarchy --> >
+<p><!-- tmpl_var author -->@<!-- tmpl_var timestamp --> said:</p>
+<p><!-- tmpl_var content --></p>
 <p><a href="http://<!-- tmpl_var host-address -->/view?nincf=1&blogid=<!-- tmpl_var blogid -->&rpmsg=<!-- tmpl_var msgid -->#messages">reply</a></p>
-</td>
-<td>
-<!-- tmpl_var content -->
-</td>
-</tr><tr>
+<div>
 <!-- tmpl_if reply-list -->
-<td><!-- tmpl_loop reply-list -->
+<!-- tmpl_loop reply-list -->
 <!-- tmpl_if sub-html --><!-- tmpl_var sub-html --><!-- /tmpl_if -->
-<!-- /tmpl_loop --></td></tr>
+<!-- /tmpl_loop -->
 <!-- /tmpl_if -->
-</table>
+</div>
+</div>

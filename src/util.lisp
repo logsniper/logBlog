@@ -7,7 +7,7 @@
   (with-output-to-string (stream)
     (multiple-value-bind
         (second minute hour date month year day-of-week dst-p tz)
-        (decode-universal-time timestamp)
+        (decode-universal-time timestamp -8)
       (format stream "~2,'0d:~2,'0d:~2,'0d ~d/~2,'0d/~d (GMT~@d)"
               hour minute second month date year tz)
       (ignore-unused-var day-of-week dst-p)
