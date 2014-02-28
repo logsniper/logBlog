@@ -56,6 +56,19 @@
                                                    :stream stream))))
         (generate-register-page)))))
 
+(defun generate-recent-messages ()
+  (with-output-to-string (stream)
+    (html-template:fill-and-print-template
+      #P"./message.tmpl"
+      (list :host *host-address*
+            :message-posts
+            (loop for i from 1 to 5
+                  for message-post in (nreverse (get-instances-by-range 'message-post 'timestamp nil nil))
+                  collect (list :author (author message-post)
+                                :owner-blogid (owner-blogid message-post)
+                                :content (content message-post))))
+      :stream stream)))
+
 (defun generate-sidebar ()
   (with-output-to-string (stream)
     (html-template:fill-and-print-template
@@ -63,7 +76,8 @@
       (list :host *host-address*
             :tags (loop for item in (summarise-blog-tags)
                         collect (list :tag (first item)
-                                      :count (second item))))
+                                      :count (second item)))
+            :recent-messages (generate-recent-messages))
       :stream stream)))
 
 (defun generate-tags-linker (blog)
@@ -177,25 +191,6 @@
           :stream stream))
       (generate-404-page)))))
 
-(defun generate-message-page ()
-  (with-cookie-user (userinfo)
-  (add-message (hunchentoot:post-parameter "content")
-               (hunchentoot:real-remote-addr)
-               nil)
-  (with-output-to-string (stream)
-    (html-template:fill-and-print-template
-      #P"./message.tmpl"
-      (list :author (if userinfo (author userinfo) "")
-            :email (if userinfo (email userinfo) "")
-            :message-posts
-            (loop for message-post in (nreverse (get-instances-by-range 'message-post 'timestamp nil nil))
-                  collect (list :author (author message-post)
-                                :msgid (msgid message-post)
-                                :content (content message-post)
-                                :timestamp (timestamp-to-string (timestamp message-post))
-                                :ip-addr (ip-addr message-post))))
-      :stream stream))))
-
 (defun parse-blog-submitter (blog)
   (let ((blog-title (hunchentoot:post-parameter "title"))
         (blog-tags (trim-and-split (hunchentoot:post-parameter "tags")))
@@ -277,7 +272,6 @@
         (hunchentoot:create-static-file-dispatcher-and-handler "/style.css" #P"resources/style.css")
         (hunchentoot:create-static-file-dispatcher-and-handler "/favicon.ico" #P"resources/favicon.ico")
         (hunchentoot:create-folder-dispatcher-and-handler "/images/" *image-path*)
-        (hunchentoot:create-regex-dispatcher "^/message$" 'generate-message-page)
         (hunchentoot:create-regex-dispatcher "^/view$" 'generate-blog-view-page)
         (hunchentoot:create-regex-dispatcher "^/submit_message$" 'answer-submit-message)
         (hunchentoot:create-regex-dispatcher "^/register$" 'generate-register-page)

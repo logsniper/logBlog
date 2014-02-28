@@ -22,6 +22,11 @@ h2 {
     color: darkblue;
 }
 
+h3 {
+    font-size:1.25em;
+    color: darkblue;
+}
+
 p {
     font-size:1em;
 }
@@ -40,14 +45,15 @@ textarea {
     border-color: grey;
     margin: 3px 0;
 }
-#sidebar {
-    width: 20%;
-    padding: 80px 0 100px 3%;
+div.sidebar {
+    width: 23%;
+    padding: 10px 0;
     display: inline;
     float: right;
     border-style: solid;
     border-color: grey;
     margin: 3px 0;
+    background: lightgrey;
 }
 
 #content {
@@ -70,4 +76,20 @@ div.odd {
 
 div.even {
     background: lightgrey;
+}
+
+div.categories {
+    margin: 10px 1% 0 1%;
+    padding: 10px 0;
+    border-style: solid;
+    border-color: grey;
+    background: white;
+}
+
+div.comments {
+    margin: 10px 1% 0 1%;
+    padding: 10px 0;
+    border-style: solid;
+    border-color: grey;
+    background: white;
 }
