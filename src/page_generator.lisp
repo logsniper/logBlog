@@ -18,18 +18,28 @@
           do (setq body (concatenate 'string body (decorate-paragraph para))))
     body))
 
+(defun generate-navigator-page ()
+  (with-cookie-user (cookie-userinfo)
+    (with-output-to-string (stream)
+      (html-template:fill-and-print-template
+        #P"./navigator.tmpl"
+        (list :username (if cookie-userinfo
+                          (author cookie-userinfo)
+                          nil))
+      :stream stream))))
+
 (defmacro def-generate-static-page (func-name file-name)
   `(defun ,func-name ()
      (with-cookie-user (userinfo)
         (with-output-to-string (stream)
           (html-template:fill-and-print-template
             ,file-name
-            ()
+            (list :navigator (generate-navigator-page))
             :stream stream)))))
 
 (def-generate-static-page generate-register-page #P"./register.tmpl")
 (def-generate-static-page generate-login-page #P"./login.tmpl")
-(def-generate-static-page generate-404-page #P"./404.tmpl")
+(def-generate-static-page generate-about-page #P"./about.tmpl")
 
 (defun generate-register-response-page ()
   (with-cookie-user (cookie-userinfo)
@@ -92,11 +102,13 @@
 (defun generate-blog-list-page ()
   "Generate the index page on which lists all valid blog posts"
   (with-cookie-user (userinfo)
+    (refresh-database-connection)
     (let ((need-tag (hunchentoot:get-parameter "tag")))
       (with-output-to-string (stream)
         (html-template:fill-and-print-template
           #P"./blog_list.tmpl"
-          (list :blog-posts
+          (list :navigator (generate-navigator-page)
+                :blog-posts
                 (nreverse
                   (loop for blog-post in (pset-list *blog-posts*)
                         when (blog-filter-with-tag blog-post need-tag)
@@ -172,7 +184,8 @@
           (add-visitor-count blog))
         (html-template:fill-and-print-template
           #P"./view_blog.tmpl"
-          (list :blogid (blogid blog)
+          (list :navigator (generate-navigator-page)
+                :blogid (blogid blog)
                 :title (title blog)
                 :tags (generate-tags-linker blog)
                 :timestamp (timestamp-to-string (timestamp blog))
@@ -189,7 +202,7 @@
                 :recursive-messages (recursive-messages-of-blog blog)
                 :sidebar (generate-sidebar))
           :stream stream))
-      (generate-404-page)))))
+      (generate-hint-response-page)))))
 
 (defun parse-blog-submitter (blog)
   (let ((blog-title (hunchentoot:post-parameter "title"))
@@ -214,34 +227,6 @@
         (setf (last-modified-time blog) (get-universal-time))
         (save-blog blog)))))
 
-(defun generate-blog-editor-page ()
-  (with-cookie-user (userinfo)
-    (if (not (manager userinfo))
-      (generate-hint-response-page)
-      (let ((blog (get-non-nil-blog (string-to-int (or (hunchentoot:get-parameter "blogid")
-                                                       (hunchentoot:post-parameter "blogid"))))))
-        (parse-blog-submitter blog)
-        (with-output-to-string (stream)
-          (log-info "[blog tags]blogid:~a,tags:~a" (blogid blog) (join-string-with-comma (tags blog)))
-          (html-template:fill-and-print-template
-            #P"./create_edit_blog.tmpl"
-            (list :title (title blog)
-                  :tags (join-string-with-comma (tags blog))
-                  :blogid (blogid blog)
-                  :body-paragraph
-                  (loop for idx from 0 to *max-paragraph-num*
-                        for para in (body blog)
-                        collect (list :sequence idx :content (content para)
-                                      :headp (equal (para-type para) 'ptype-head)
-                                      :bodyp (equal (para-type para) 'ptype-body)
-                                      :imagep (equal (para-type para) 'ptype-image))))
-            :stream stream))))))
-
-(defun generate-logout-page ()
-  (with-cookie-user (userinfo)
-    (logout userinfo)
-    (hunchentoot:redirect "/hint?v=31" :host *host-address* :protocol :http :code 303)))
-
 (defun get-hintinfo-by-id (hintid)
   (case hintid
     (1 "Register success.")
@@ -262,16 +247,46 @@
         (log-info "[hint]hintid:~a,refer:~a" hintid refer-url)
         (html-template:fill-and-print-template
           #P"./hint.tmpl"
-          (list :hintinfo (get-hintinfo-by-id hintid)
+          (list :navigator (generate-navigator-page)
+                :hintinfo (get-hintinfo-by-id hintid)
                 :refer-url refer-url
                 :main-page *host-address*)
           :stream stream)))))
+
+(defun generate-blog-editor-page ()
+  (with-cookie-user (userinfo)
+    (if (and userinfo (manager userinfo))
+      (let ((blog (get-non-nil-blog (string-to-int (or (hunchentoot:get-parameter "blogid")
+                                                       (hunchentoot:post-parameter "blogid"))))))
+        (parse-blog-submitter blog)
+        (with-output-to-string (stream)
+          (log-info "[blog tags]blogid:~a,tags:~a" (blogid blog) (join-string-with-comma (tags blog)))
+          (html-template:fill-and-print-template
+            #P"./create_edit_blog.tmpl"
+            (list :title (title blog)
+                  :tags (join-string-with-comma (tags blog))
+                  :blogid (blogid blog)
+                  :body-paragraph
+                  (loop for idx from 0 to *max-paragraph-num*
+                        for para in (body blog)
+                        collect (list :sequence idx :content (content para)
+                                      :headp (equal (para-type para) 'ptype-head)
+                                      :bodyp (equal (para-type para) 'ptype-body)
+                                      :imagep (equal (para-type para) 'ptype-image))))
+            :stream stream)))
+      (generate-hint-response-page))))
+
+(defun generate-logout-page ()
+  (with-cookie-user (userinfo)
+    (logout userinfo)
+    (hunchentoot:redirect "/hint?v=31" :host *host-address* :protocol :http :code 303)))
 
 (setq hunchentoot:*dispatch-table*
       (list 
         (hunchentoot:create-static-file-dispatcher-and-handler "/style.css" #P"resources/style.css")
         (hunchentoot:create-static-file-dispatcher-and-handler "/favicon.ico" #P"resources/favicon.ico")
         (hunchentoot:create-folder-dispatcher-and-handler "/images/" *image-path*)
+        (hunchentoot:create-regex-dispatcher "^/navigator$" 'generate-navigator-page)
         (hunchentoot:create-regex-dispatcher "^/view$" 'generate-blog-view-page)
         (hunchentoot:create-regex-dispatcher "^/submit_message$" 'answer-submit-message)
         (hunchentoot:create-regex-dispatcher "^/register$" 'generate-register-page)
@@ -283,4 +298,5 @@
         (hunchentoot:create-regex-dispatcher *create-and-edit-label* 'generate-blog-editor-page)
         (hunchentoot:create-regex-dispatcher "^/index$" 'generate-blog-list-page)
         (hunchentoot:create-regex-dispatcher "^/$" 'generate-blog-list-page)
+        (hunchentoot:create-regex-dispatcher "^/about$" 'generate-about-page)
         (hunchentoot:create-prefix-dispatcher "/" 'generate-hint-response-page)))

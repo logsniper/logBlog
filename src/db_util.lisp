@@ -74,3 +74,8 @@
     (let ((counter-list (loop for k being the hash-keys in counter using (hash-value v)
                               collect (list k v))))
       (sort counter-list #'> :key #'second))))
+
+(defun refresh-database-connection ()
+  (close-store)
+  (open-store *store-spec*)
+  (log-warning "refreshed db connection"))

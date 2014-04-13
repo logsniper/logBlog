@@ -91,7 +91,8 @@
                   userinfo-e)))))))))
 
 (defun logout (userinfo)
-  (setf (token userinfo) nil))
+  (if userinfo
+    (setf (token userinfo) nil)))
 
 (defmacro with-cookie-user ((userinfo) &body body)
   `(let ((,userinfo (get-cookie-user-info)))

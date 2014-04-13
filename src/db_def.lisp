@@ -2,7 +2,8 @@
 (use-package :elephant)
 
 ; Open the store where our data is stored
-(defvar *elephant-store* (open-store '(:clsql (:sqlite3 "./database/blog.db"))))
+(defparameter *store-spec* '(:clsql (:sqlite3 "./database/blog.db")))
+(open-store *store-spec*)
 
 (defclass blog-paragraph ()
            ((content :initarg :content
@@ -121,3 +122,5 @@
         (setq counter (make-instance 'items-counter))
         (insert-item counter *items-counter*)))
     counter))
+
+(close-store)
