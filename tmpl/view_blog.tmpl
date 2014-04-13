@@ -10,9 +10,8 @@
   <h1><!-- tmpl_var title --></h1>
     <div>
       <div>Created on <!-- tmpl_var timestamp --></div>
-      <div>Last Modified on <!-- tmpl_var last-modified-time --></div>
-      <div>This article has been read for <!-- tmpl_var visitor-count --> times with <!-- tmpl_var msg-num --> comments.</div>
       <div>Tags:<!-- tmpl_var tags --></div>
+      <div>Read times: <!-- tmpl_var visitor-count -->, Comments: <!-- tmpl_var msg-num --></div>
       <div id=content>
         <!-- tmpl_var body -->
       </div>
@@ -21,7 +20,7 @@
   <div id=sidebar>
     <!-- tmpl_var sidebar -->
   </div>
-  <div id=maininfo>
+  <div id=msginfo>
     <div>
       <a name="messages"/>
       <form method="post" action="submit_message?blogid=<!-- tmpl_var blogid -->">

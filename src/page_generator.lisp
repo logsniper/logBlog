@@ -34,7 +34,8 @@
         (with-output-to-string (stream)
           (html-template:fill-and-print-template
             ,file-name
-            (list :navigator (generate-navigator-page))
+            (list :navigator (generate-navigator-page)
+                  :sidebar (generate-sidebar))
             :stream stream)))))
 
 (def-generate-static-page generate-register-page #P"./register.tmpl")
@@ -89,6 +90,33 @@
                                       :count (second item)))
             :recent-messages (generate-recent-messages))
       :stream stream)))
+
+(defun get-hintinfo-by-id (hintid)
+  (case hintid
+    (1 "Register success.")
+    (2 "Register failed. Your Email has already existed.")
+    (3 "Register failed. Name/Email/Password cannot be empty.")
+    (11 "Login success.")
+    (12 "Login failed. Your Email&Password combination is invalid.")
+    (22 "Sorry, this blog cannot be accessed.")
+    (31 "Logout success.")
+    (-1 "Page not found.")
+    (t "Unknown hint number. Please contact the blogger(logsniper@outlook.com)")))
+
+(defun generate-hint-response-page ()
+  (with-cookie-user (userinfo)
+    (let ((hintid (string-to-int (hunchentoot:get-parameter "v")))
+          (refer-url (hunchentoot:referer)))
+      (with-output-to-string (stream)
+        (log-info "[hint]hintid:~a,refer:~a" hintid refer-url)
+        (html-template:fill-and-print-template
+          #P"./hint.tmpl"
+          (list :navigator (generate-navigator-page)
+                :sidebar (generate-sidebar)
+                :hintinfo (get-hintinfo-by-id hintid)
+                :refer-url refer-url
+                :main-page *host-address*)
+          :stream stream)))))
 
 (defun generate-tags-linker (blog)
   (with-output-to-string (stream)
@@ -227,32 +255,6 @@
         (setf (last-modified-time blog) (get-universal-time))
         (save-blog blog)))))
 
-(defun get-hintinfo-by-id (hintid)
-  (case hintid
-    (1 "Register success.")
-    (2 "Register failed. Your Email has already existed.")
-    (3 "Register failed. Name/Email/Password cannot be empty.")
-    (11 "Login success.")
-    (12 "Login failed. Your Email&Password combination is invalid.")
-    (22 "Sorry, this blog cannot be accessed.")
-    (31 "Logout success.")
-    (-1 "Page not found.")
-    (t "Unknown hint number. Please contact the blogger(logsniper@outlook.com)")))
-
-(defun generate-hint-response-page ()
-  (with-cookie-user (userinfo)
-    (let ((hintid (string-to-int (hunchentoot:get-parameter "v")))
-          (refer-url (hunchentoot:referer)))
-      (with-output-to-string (stream)
-        (log-info "[hint]hintid:~a,refer:~a" hintid refer-url)
-        (html-template:fill-and-print-template
-          #P"./hint.tmpl"
-          (list :navigator (generate-navigator-page)
-                :hintinfo (get-hintinfo-by-id hintid)
-                :refer-url refer-url
-                :main-page *host-address*)
-          :stream stream)))))
-
 (defun generate-blog-editor-page ()
   (with-cookie-user (userinfo)
     (if (and userinfo (manager userinfo))
@@ -264,6 +266,8 @@
           (html-template:fill-and-print-template
             #P"./create_edit_blog.tmpl"
             (list :title (title blog)
+                  :timestamp (timestamp-to-string (timestamp blog))
+                  :last-modified-time (timestamp-to-string (last-modified-time blog))
                   :tags (join-string-with-comma (tags blog))
                   :blogid (blogid blog)
                   :body-paragraph

@@ -6,25 +6,30 @@
 </head>
 <body>
   <!-- tmpl_var navigator -->
+  <div id=maininfo>
   <h1>Registering</h1>
-
   <form method="post" action="reg_response">
+    <p>注: 邮箱不会被公开，密码加密存储</p>
     <table>
     <tr>
-      <td>Name:</td>
+      <td>昵称/Nickname:</td>
       <td><input type="text" name="author"/></td>
     </tr>
     <tr>
-      <td>Email:</td>
+      <td>邮箱/Email:</td>
       <td><input type="text" name="email"/></td>
     </tr>
     <tr>
-      <td>Password:</td>
+      <td>密码/Password:</td>
       <td><input type="password" name="password"/></td>
     </tr>
     </table>
     <input type="submit" value="Submit"/>
   </form>
+  </div>
+  <div id=sidebar>
+    <!-- tmpl_var sidebar -->
+  </div>
   
 </body>
 </html>

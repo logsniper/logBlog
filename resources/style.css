@@ -1,6 +1,6 @@
 body {
-    margin-left: 240px;
-    width: 960px;
+    margin-left: 200px;
+    width: 1080px;
     background: url(images/background.png);
     color: black;
     font-family: Monospace;
@@ -9,17 +9,17 @@ body {
 }
 
 h1 {
-    font-size:3em;
+    font-size:36px;
     color: darkblue;
 }
 
 h2 {
-    font-size:2em;
+    font-size:30px;
     color: darkblue;
 }
 
 h3 {
-    font-size:1.25em;
+    font-size:24px;
     color: darkblue;
 }
 
@@ -28,8 +28,8 @@ p {
 }
 
 textarea {
-    width: 50em;
-    height: 5em;
+    width: 640px;
+    height: 80px;
 }
 
 ul {
@@ -39,16 +39,21 @@ ul {
     margin: 0;
 }
 
+div {
+    border-radius: 7px;
+    border-width: 1px;
+}
+
 #navigator {
     top: 0px;
-    left: 240px;
+    left: 200px;
     z-index: 199;
     border-left-width: 0px;
     border-right-width: 0px;
     height: 40px;
-    width: 960px;
+    width: 1080px;
     position: fixed;
-    background: #507ACC;
+    background: #4672BF;
     opacity: 0.8;
     color: white;
 }
@@ -67,31 +72,43 @@ ul {
 }
 
 #maininfo {
-    width: 720px;
-    display: inline;
+    width: 780px;
+    min-height: 300px;
+    display: block;
     float: left;
-    background: lightgrey;
+    background: #E0E0FF;
     border-style: solid;
     border-color: grey;
-    margin: 40px 0 0 0;
+    padding: 0 20px 20px 20px;
+    margin: 40px 0 20px 0;
+}
+
+#msginfo {
+    width: 780px;
+    display: block;
+    float: left;
+    background: #E0E0FF;
+    border-style: solid;
+    border-color: grey;
+    padding: 0 20px 20px 20px;
 }
 
 #sidebar {
-    width: 220px;
+    width: 250px;
     padding: 10px 0;
     display: inline;
     float: right;
     border-style: solid;
     border-color: grey;
     margin: 40px 0 0 0;
-    background: lightgrey;
+    background: #DDDDFF;
 }
 
 #content {
-    margin: 3%;
-    padding: 3%;
+    margin: 20px 0 20px 0;
+    padding: 0 20px 20px 20px;
     background: white;
-    border: 2px solid grey;
+    border: 1px solid grey;
 }
 
 #message {
@@ -99,6 +116,12 @@ ul {
     padding: 3px 5px;
     border-style: solid;
     border-color: grey;
+    font-size: 12px;
+}
+
+#message #text {
+    border:none;
+    font-size: 16px;
 }
 
 div.odd {
@@ -106,7 +129,7 @@ div.odd {
 }
 
 div.even {
-    background: lightgrey;
+    background: #DDDDFF;
 }
 
 div.categories {
@@ -123,4 +146,15 @@ div.comments {
     border-style: solid;
     border-color: grey;
     background: white;
+}
+
+div.sidebar_title {
+    font-size:20px;
+    color: white;
+    background:#4672BF;
+    width: 190px;
+    margin-left:20px;
+    margin-right:20px;
+    padding-left: 5px;
+    float:middle;
 }

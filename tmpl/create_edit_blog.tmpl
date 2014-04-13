@@ -6,8 +6,10 @@
 </head>
 <body>
   <!-- tmpl_var navigator -->
+  <div id=maininfo>
   <h1>Blog Creator & Editor</h1>
-
+  <div>Created on <!-- tmpl_var timestamp --></div>
+  <div>Last Modified on <!-- tmpl_var last-modified-time --></div>
   <form method="post" action="Create_Edit">
     <table>
     <tr>
@@ -40,5 +42,6 @@
     </table>
     <input type="submit" value="save"/>
   </form>
+  </div>
 </body>
 </html>
