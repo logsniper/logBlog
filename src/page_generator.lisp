@@ -66,31 +66,6 @@
 (def-generate-static-page generate-login-page #P"./login.tmpl")
 (def-generate-static-page generate-about-page #P"./about.tmpl")
 
-(defun generate-register-response-page ()
-  (with-cookie-user (cookie-userinfo)
-    (let* ((password (hunchentoot:post-parameter "password"))
-           (email (hunchentoot:post-parameter "email"))
-           (author (hunchentoot:post-parameter "author"))
-           (userinfo (query-userinfo-by-email email)))
-      (if (none-of-them-is-empty author email password)
-        (with-output-to-string (stream)
-          (if (not userinfo)
-            (progn (add-user email author password)
-                   (update-user-info-cookie (query-userinfo-by-email email))
-                   (html-template:fill-and-print-template #P"./reg_response.tmpl"
-                                                          (list :succ t)
-                                                          :stream stream))
-            (if (not (password userinfo))
-              (progn (update-user-info-db userinfo :author author :password password)
-                     (update-user-info-cookie userinfo)
-                     (html-template:fill-and-print-template #P"./reg_response.tmpl"
-                                                            (list :succ t)
-                                                            :stream stream))
-              (html-template:fill-and-print-template #P"./reg_response.tmpl"
-                                                   (list :succ nil)
-                                                   :stream stream))))
-        (generate-register-page)))))
-
 (defun get-hintinfo-by-id (hintid)
   (case hintid
     (1 "Register success.")
@@ -102,6 +77,25 @@
     (31 "Logout success.")
     (-1 "Page not found.")
     (t "Unknown hint number. Please contact the blogger(logsniper@outlook.com)")))
+
+(defun generate-register-response-page ()
+  (with-cookie-user (cookie-userinfo)
+    (let* ((password (hunchentoot:post-parameter "password"))
+           (email (hunchentoot:post-parameter "email"))
+           (author (hunchentoot:post-parameter "author"))
+           (userinfo (query-userinfo-by-email email)))
+      (if (none-of-them-is-empty author email password)
+        (with-output-to-string (stream)
+          (if (not userinfo)
+            (progn (add-user email author password)
+                   (update-user-info-cookie (query-userinfo-by-email email))
+                   (hunchentoot:redirect "/hint?v=1" :host *host-address* :protocol :http :code 303))
+            (if (not (password userinfo))
+              (progn (update-user-info-db userinfo :author author :password password)
+                     (update-user-info-cookie userinfo)
+                     (hunchentoot:redirect "/hint?v=1" :host *host-address* :protocol :http :code 303))
+              (hunchentoot:redirect "/hint?v=2" :host *host-address* :protocol :http :code 303))))
+        (hunchentoot:redirect "/hint?v=3" :host *host-address* :protocol :http :code 303)))))
 
 (defun generate-hint-response-page ()
   (with-cookie-user (userinfo)
@@ -203,10 +197,11 @@
 (defun generate-blog-view-page ()
   (with-cookie-user (userinfo)
   (let* ((blog (get-blog (string-to-int (hunchentoot:get-parameter "blogid"))))
+        (force-view (string-to-int (hunchentoot:get-parameter "fv")))
         (replied-msgid (string-to-int (hunchentoot:get-parameter "rpmsg")))
         (not-incf-vc (string-to-int (hunchentoot:get-parameter "nincf")))
         (replied-msg (get-message replied-msgid)))
-    (if (and blog (published blog))
+    (if (and blog (or (> force-view 0) (published blog)))
       (with-output-to-string (stream)
         (unless (and not-incf-vc (> not-incf-vc 0))
           (add-visitor-count blog))
@@ -267,7 +262,8 @@
           (log-info "[blog tags]blogid:~a,tags:~a" (blogid blog) (join-string-with-comma (tags blog)))
           (html-template:fill-and-print-template
             #P"./create_edit_blog.tmpl"
-            (list :title (title blog)
+            (list :navigator (generate-navigator-page)
+                  :title (title blog)
                   :published (published blog)
                   :timestamp (timestamp-to-string (timestamp blog))
                   :last-modified-time (timestamp-to-string (last-modified-time blog))
@@ -291,6 +287,7 @@
 (setq hunchentoot:*dispatch-table*
       (list 
         (hunchentoot:create-static-file-dispatcher-and-handler "/style.css" #P"resources/style.css")
+        (hunchentoot:create-static-file-dispatcher-and-handler "/script.js" #P"resources/script.js")
         (hunchentoot:create-static-file-dispatcher-and-handler "/favicon.ico" #P"resources/favicon.ico")
         (hunchentoot:create-folder-dispatcher-and-handler "/images/" *image-path*)
         (hunchentoot:create-regex-dispatcher "^/navigator$" 'generate-navigator-page)

@@ -46,12 +46,12 @@ div {
 
 #navigator {
     top: 0px;
-    left: 200px;
+    left: 0px;
     z-index: 199;
     border-left-width: 0px;
     border-right-width: 0px;
     height: 40px;
-    width: 1080px;
+    width: 100%;
     position: fixed;
     background: #4672BF;
     opacity: 0.8;
@@ -122,10 +122,20 @@ div {
     font-size: 12px;
 }
 
-#message #text {
+#message .text {
     border:none;
     font-size: 16px;
 }
+
+#leave_a_msg {
+    margin: 3px 1px 1px 5px;
+    border-style: solid;
+    border-color: grey;
+}
+#leave_a_msg textarea {
+    width: 480px;
+}
+
 
 div.odd {
     background: white;

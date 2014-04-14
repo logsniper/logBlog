@@ -8,7 +8,7 @@
   <!-- tmpl_var navigator -->
   <div id=maininfo>
   <h1>Registering</h1>
-  <form method="post" action="reg_response">
+  <form id="register_form" method="post" action="reg_response">
     <p>注: 邮箱不会被公开，密码加密存储</p>
     <table>
     <tr>
@@ -17,19 +17,21 @@
     </tr>
     <tr>
       <td>邮箱/Email:</td>
-      <td><input type="text" name="email"/></td>
+      <td><input id="input_email" type="text" name="email"/></td>
+      <td id="input_email_hint"></td>
     </tr>
     <tr>
       <td>密码/Password:</td>
       <td><input type="password" name="password"/></td>
     </tr>
     </table>
-    <input type="submit" value="Submit"/>
+    <input id="register_submit" type="submit" value="Submit"/>
   </form>
   </div>
   <div id=sidebar>
     <!-- tmpl_var sidebar -->
   </div>
   
+  <script src="/script.js"></script>
 </body>
 </html>

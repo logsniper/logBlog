@@ -1,7 +1,7 @@
 <div id=message class=<!-- tmpl_var hierarchy --> >
-<p><!-- tmpl_var author -->@<!-- tmpl_var timestamp --> said:</p>
-<p id=text><!-- tmpl_var content --></p>
-<p><a href="http://<!-- tmpl_var host-address -->/view?nincf=1&blogid=<!-- tmpl_var blogid -->&rpmsg=<!-- tmpl_var msgid -->#messages">reply</a></p>
+<p>On <!-- tmpl_var timestamp --> <b><!-- tmpl_var author --></b> said:</p>
+<p class=text id=<!-- tmpl_var msgid --> ><!-- tmpl_var content --></p>
+<p><a href="javascript:void(0)" onclick="leaveMessageForm(<!-- tmpl_var msgid -->, '<!-- tmpl_var author -->');">回复</a></p>
 <div>
 <!-- tmpl_if reply-list -->
 <!-- tmpl_loop reply-list -->

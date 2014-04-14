@@ -8,8 +8,8 @@
     (multiple-value-bind
         (second minute hour date month year day-of-week dst-p tz)
         (decode-universal-time timestamp -8)
-      (format stream "~2,'0d:~2,'0d:~2,'0d ~d/~2,'0d/~d (GMT~@d)"
-              hour minute second month date year tz)
+      (format stream "~d/~2,'0d/~d ~2,'0d:~2,'0d:~2,'0d (GMT~@d)"
+              month date year hour minute second tz)
       (ignore-unused-var day-of-week dst-p)
       stream)))
 
@@ -79,6 +79,7 @@
 (defun trim-and-split (str)
   (let ((words (split-string-by-char str #\,)))
     (loop for word in words
+          when (> (length (string-trim " " word)) 0)
           collect (string-trim " " word))))
 
 (defun join-string-with-comma (str-list)

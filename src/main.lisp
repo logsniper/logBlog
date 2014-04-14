@@ -13,5 +13,5 @@
 (setf (hunchentoot:acceptor-message-log-destination acceptor) *message-log-path*)
 (setf (hunchentoot:acceptor-access-log-destination acceptor) *access-log-path*)
 
-(with-open-store (*store-spec*)
-                 (hunchentoot:start acceptor))
+(open-store *store-spec*)
+(hunchentoot:start acceptor)

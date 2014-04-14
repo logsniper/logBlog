@@ -23,7 +23,9 @@
   <div id=msginfo>
     <div>
       <a name="messages"/>
-      <form method="post" action="submit_message?blogid=<!-- tmpl_var blogid -->">
+      <a id=non_reply_msg href="javascript:void(0)" onclick="leaveMessageForm(-1,'')">留言</a>
+      <div id=leave_a_msg>
+      <form id=register_form method="post" action="submit_message?blogid=<!-- tmpl_var blogid -->">
         <table>
         <!-- tmpl_if non-cookie -->
         <tr>
@@ -32,7 +34,8 @@
         </tr>
         <tr>
           <td>email:</td>
-          <td><input type="text" name="email"/></td>
+          <td><input id="input_email" type="text" name="email"/></td>
+          <td id="input_email_hint"></td>
         </tr>
         <tr>
           <td>password:</td>
@@ -49,13 +52,16 @@
           <!-- tmpl_if is-reply -->
             <input type="hidden" name="rpmsg" value="<!-- tmpl_var replied-msgid -->"/>
           <!-- /tmpl_if -->
-          <td><textarea name="content"><!-- tmpl_if is-reply -->Reply <!-- tmpl_var replied-author -->:<!-- /tmpl_if --></textarea></td>
+          <td><textarea name="content"><!-- tmpl_if is-reply -->回复<!-- tmpl_var replied-author -->: <!-- /tmpl_if --></textarea></td>
         </tr>
         </table>
-        <input type="submit" value="Submit"/>
+        <input id=register_submit type="submit" value="Submit"/>
+        <input type="button" value="收起回复" onclick="$('#leave_a_msg').slideUp();"/>
       </form>
+      </div>
     <!-- tmpl_var recursive-messages -->
     </div>
   </div>
+  <script src="/script.js"></script>
 </body>
 </html>
