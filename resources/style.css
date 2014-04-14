@@ -67,6 +67,9 @@ div {
     padding: 8px 20px;
 }
 
+#navigator a {
+    color:white;
+}
 #navigator a:visited {
     color:white;
 }

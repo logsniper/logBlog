@@ -22,6 +22,14 @@
     <tr>
       <td>Tags:<input type="text" name="tags" value="<!-- tmpl_var tags -->"/></td>
     </tr>
+    <tr>
+      <td>blog status:
+        <input type="radio" name="blog_status" value="draft" 
+               <!-- tmpl_unless published -->checked="true"<!-- /tmpl_unless --> /> draft
+        <input type="radio" name="blog_status" value="published" 
+               <!-- tmpl_if published -->checked="true"<!-- /tmpl_if --> /> published
+      </td>
+    </tr>
   
     <!-- tmpl_loop body-paragraph -->
     <tr>

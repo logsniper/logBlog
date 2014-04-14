@@ -69,7 +69,9 @@
    (visitor-count :initform 0
                   :accessor visitor-count)
    (last-modified-time :initform (get-universal-time)
-                       :accessor last-modified-time)))
+                       :accessor last-modified-time)
+   (published :initform nil
+              :accessor published)))
 
 (defpclass userinfo ()
            ((userid :initarg :userid

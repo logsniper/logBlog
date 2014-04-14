@@ -28,6 +28,30 @@
                           nil))
       :stream stream))))
 
+(defun generate-recent-messages ()
+  (with-output-to-string (stream)
+    (html-template:fill-and-print-template
+      #P"./message.tmpl"
+      (list :host *host-address*
+            :message-posts
+            (loop for i from 1 to 5
+                  for message-post in (nreverse (get-instances-by-range 'message-post 'timestamp nil nil))
+                  collect (list :author (author message-post)
+                                :owner-blogid (owner-blogid message-post)
+                                :content (content message-post))))
+      :stream stream)))
+
+(defun generate-sidebar ()
+  (with-output-to-string (stream)
+    (html-template:fill-and-print-template
+      #P"./sidebar.tmpl"
+      (list :host *host-address*
+            :tags (loop for item in (summarise-blog-tags)
+                        collect (list :tag (first item)
+                                      :count (second item)))
+            :recent-messages (generate-recent-messages))
+      :stream stream)))
+
 (defmacro def-generate-static-page (func-name file-name)
   `(defun ,func-name ()
      (with-cookie-user (userinfo)
@@ -66,30 +90,6 @@
                                                    (list :succ nil)
                                                    :stream stream))))
         (generate-register-page)))))
-
-(defun generate-recent-messages ()
-  (with-output-to-string (stream)
-    (html-template:fill-and-print-template
-      #P"./message.tmpl"
-      (list :host *host-address*
-            :message-posts
-            (loop for i from 1 to 5
-                  for message-post in (nreverse (get-instances-by-range 'message-post 'timestamp nil nil))
-                  collect (list :author (author message-post)
-                                :owner-blogid (owner-blogid message-post)
-                                :content (content message-post))))
-      :stream stream)))
-
-(defun generate-sidebar ()
-  (with-output-to-string (stream)
-    (html-template:fill-and-print-template
-      #P"./sidebar.tmpl"
-      (list :host *host-address*
-            :tags (loop for item in (summarise-blog-tags)
-                        collect (list :tag (first item)
-                                      :count (second item)))
-            :recent-messages (generate-recent-messages))
-      :stream stream)))
 
 (defun get-hintinfo-by-id (hintid)
   (case hintid
@@ -206,7 +206,7 @@
         (replied-msgid (string-to-int (hunchentoot:get-parameter "rpmsg")))
         (not-incf-vc (string-to-int (hunchentoot:get-parameter "nincf")))
         (replied-msg (get-message replied-msgid)))
-    (if blog
+    (if (and blog (published blog))
       (with-output-to-string (stream)
         (unless (and not-incf-vc (> not-incf-vc 0))
           (add-visitor-count blog))
@@ -235,6 +235,7 @@
 (defun parse-blog-submitter (blog)
   (let ((blog-title (hunchentoot:post-parameter "title"))
         (blog-tags (trim-and-split (hunchentoot:post-parameter "tags")))
+        (blog-status (hunchentoot:post-parameter "blog_status"))
         (blog-body (list)))
     (loop for idx from 0 to *max-paragraph-num*
           do (let ((ptext (hunchentoot:post-parameter (concatenate 'string "para_text_" (write-to-string idx))))
@@ -252,6 +253,7 @@
         (setf (title blog) blog-title)
         (setf (tags blog) blog-tags)
         (setf (body blog) (nreverse blog-body))
+        (setf (published blog) (string= "published" blog-status))
         (setf (last-modified-time blog) (get-universal-time))
         (save-blog blog)))))
 
@@ -266,6 +268,7 @@
           (html-template:fill-and-print-template
             #P"./create_edit_blog.tmpl"
             (list :title (title blog)
+                  :published (published blog)
                   :timestamp (timestamp-to-string (timestamp blog))
                   :last-modified-time (timestamp-to-string (last-modified-time blog))
                   :tags (join-string-with-comma (tags blog))
