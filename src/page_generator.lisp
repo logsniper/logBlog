@@ -275,7 +275,8 @@
                         collect (list :sequence idx :content (content para)
                                       :headp (equal (para-type para) 'ptype-head)
                                       :bodyp (equal (para-type para) 'ptype-body)
-                                      :imagep (equal (para-type para) 'ptype-image))))
+                                      :imagep (equal (para-type para) 'ptype-image)))
+                  :para-num (length (body blog)))
             :stream stream)))
       (generate-hint-response-page))))
 

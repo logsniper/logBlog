@@ -10,7 +10,7 @@
     (1+ newest-blogid)))
 
 (defun get-empty-blog ()
-  (make-instance 'blog-post :blogid (get-blogid) :body (loop for idx from 0 to *max-paragraph-num* collect (make-instance 'blog-paragraph))))
+  (make-instance 'blog-post :blogid (get-blogid) :body (loop for idx from 0 to *init-paragraph-num* collect (make-instance 'blog-paragraph))))
 
 (defun get-blog (blogid)
   (if blogid

@@ -31,25 +31,30 @@
       </td>
     </tr>
   
+    <tr><td><a id=-1 href="javascript:void(0)" onclick="insertParagraphIDafter(-1)">add paragraph</a></td></tr>
     <!-- tmpl_loop body-paragraph -->
+    <tr class=insert_pos id=<!-- tmpl_var sequence --> ><td>++++++++++</td></tr>
     <tr>
       <td>
         Paragraph: <!-- tmpl_var sequence -->
-        <input type="radio" name="para_type_<!-- tmpl_var sequence -->" value="ptype-head"
+        <input class=para_type type="radio" name="para_type_<!-- tmpl_var sequence -->" value="ptype-head"
                 <!-- tmpl_if headp -->checked="true"<!-- /tmpl_if --> /> head
-        <input type="radio" name="para_type_<!-- tmpl_var sequence -->" value="ptype-body"
+        <input class=para_type type="radio" name="para_type_<!-- tmpl_var sequence -->" value="ptype-body"
                 <!-- tmpl_if bodyp -->checked="true"<!-- /tmpl_if --> /> text
-        <input type="radio" name="para_type_<!-- tmpl_var sequence -->" value="ptype-image"
+        <input class=para_type type="radio" name="para_type_<!-- tmpl_var sequence -->" value="ptype-image"
                 <!-- tmpl_if imagep -->checked="true"<!-- /tmpl_if --> /> image
       </td>
     </tr>
     <tr>
-      <td><textarea name="para_text_<!-- tmpl_var sequence -->"><!-- tmpl_var content --></textarea></td>
+      <td><textarea class=para_text name="para_text_<!-- tmpl_var sequence -->"><!-- tmpl_var content --></textarea></td>
     </tr>
+    <tr><td><a id=<!-- tmpl_var sequence --> class=para_add href="javascript:void(0)" onclick="insertParagraphIDafter(<!-- tmpl_var sequence -->)">add paragraph</a></td></tr>
     <!-- /tmpl_loop -->
+    <tr class=insert_pos id=<!-- tmpl_var para-num --> ><td>++++++++++</td></tr>
     </table>
     <input type="submit" value="save"/>
   </form>
   </div>
+  <script src="/script.js"></script>
 </body>
 </html>
