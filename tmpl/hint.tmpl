@@ -3,6 +3,8 @@
 <head>
   <link rel="stylesheet" type="text/css" href="style.css"/>
   <title>hint</title>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="/script.js"></script>
 </head>
 <body>
   <!-- tmpl_var navigator -->
@@ -10,6 +12,8 @@
   <h1>Need some help?</h1>
   <h2><!-- tmpl_var hintinfo --></h2>
   <p><a href="<!-- tmpl_var refer-url -->">go back</a> <a href="http://<!-- tmpl_var main-page -->">main page</a></p>
+  <p>3秒后自动跳转到上一页面</p>
+  <script>jumpBack();</script>
   </div> 
   <div id=sidebar>
     <!-- tmpl_var sidebar -->

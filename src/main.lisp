@@ -5,6 +5,7 @@
 (load "./src/db_def.lisp")
 (load "./src/authenticate.lisp")
 (load "./src/db_util.lisp")
+(load "./src/ajax_process.lisp")
 (load "./src/page_generator.lisp")
 
 (in-package :logsniper.logBlog)
@@ -14,4 +15,5 @@
 (setf (hunchentoot:acceptor-access-log-destination acceptor) *access-log-path*)
 
 (open-store *store-spec*)
+(load "./src/update_pclass_tool.lisp")
 (hunchentoot:start acceptor)

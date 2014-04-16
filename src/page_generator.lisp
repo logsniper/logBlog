@@ -23,9 +23,11 @@
     (with-output-to-string (stream)
       (html-template:fill-and-print-template
         #P"./navigator.tmpl"
-        (list :username (if cookie-userinfo
-                          (author cookie-userinfo)
-                          nil))
+        (if cookie-userinfo
+          (list :username (author cookie-userinfo)
+                :has_unread (> (length (new-reply cookie-userinfo)) 0)
+                :unread_num (length (new-reply cookie-userinfo)))
+          (list :username nil))
       :stream stream))))
 
 (defun generate-recent-messages ()
@@ -38,6 +40,7 @@
                   for message-post in (nreverse (get-instances-by-range 'message-post 'timestamp nil nil))
                   collect (list :author (author message-post)
                                 :owner-blogid (owner-blogid message-post)
+                                :msgid (msgid message-post)
                                 :content (content message-post))))
       :stream stream)))
 
@@ -187,7 +190,9 @@
                (replied-msg (get-message replied-msgid))) 
           (if new-msg
             (if (and replied-msgid replied-msg)
-              (push new-msg (repliers replied-msg))
+              (progn
+                (push new-msg (repliers replied-msg))
+                (push (msgid new-msg) (new-reply (query-userinfo-by-email (email replied-msg)))))
               (push new-msg (messages blog))))
           (log-info "[reply-info]isreply:~a,replied_author:~a" (and new-msg replied-msgid replied-msg) (if replied-msg (author replied-msg) nil))
           (hunchentoot:redirect (concatenate 'string "/view?nincf=1&blogid="
@@ -285,6 +290,25 @@
     (logout userinfo)
     (hunchentoot:redirect "/hint?v=31" :host *host-address* :protocol :http :code 303)))
 
+(defun generate-unread-messages ()
+  (with-cookie-user (userinfo)
+    (with-output-to-string (stream)
+      (html-template:fill-and-print-template
+        #P"./unread_messages.tmpl"
+        (list :host *host-address*
+              :navigator (generate-navigator-page)
+              :sidebar (generate-sidebar)
+              :message-posts
+              (if userinfo
+                (loop for message-post in (mapcar #'(lambda (msgid) (get-message msgid)) (new-reply userinfo))
+                      collect (list :author (author message-post)
+                                    :time (timestamp-to-string (timestamp message-post))
+                                    :owner-blogid (owner-blogid message-post)
+                                    :msgid (msgid message-post)
+                                    :content (content message-post)))
+                ()))
+        :stream stream))))
+
 (setq hunchentoot:*dispatch-table*
       (list 
         (hunchentoot:create-static-file-dispatcher-and-handler "/style.css" #P"resources/style.css")
@@ -297,6 +321,7 @@
         (hunchentoot:create-regex-dispatcher "^/register$" 'generate-register-page)
         (hunchentoot:create-regex-dispatcher "^/reg_response$" 'generate-register-response-page)
         (hunchentoot:create-regex-dispatcher "^/login$" 'generate-login-page)
+        (hunchentoot:create-regex-dispatcher "^/ajax_login$" 'login-response-json)
         (hunchentoot:create-regex-dispatcher "^/login_response$" 'generate-login-response-page)
         (hunchentoot:create-regex-dispatcher "^/logout$" 'generate-logout-page)
         (hunchentoot:create-regex-dispatcher "^/hint$" 'generate-hint-response-page)
@@ -304,4 +329,6 @@
         (hunchentoot:create-regex-dispatcher "^/index$" 'generate-blog-list-page)
         (hunchentoot:create-regex-dispatcher "^/$" 'generate-blog-list-page)
         (hunchentoot:create-regex-dispatcher "^/about$" 'generate-about-page)
+        (hunchentoot:create-regex-dispatcher "^/unread_msg$" 'generate-unread-messages)
+        (hunchentoot:create-regex-dispatcher "^/cancel_unread$" 'cancel-unread-message)
         (hunchentoot:create-prefix-dispatcher "/" 'generate-hint-response-page)))

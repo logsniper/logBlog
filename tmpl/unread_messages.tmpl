@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="style.css"/>
+  <title>未读消息</title>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="/script.js"></script>
+</head>
+<body>
+  <!-- tmpl_var navigator -->
+  <div id=maininfo>
+  <!-- tmpl_loop message-posts -->
+    <div id=message>
+      <p>On <!-- tmpl_var time --></p>
+      <p><!-- tmpl_var author --> said:</p>
+      <p class=text><!-- tmpl_var content --></p>
+      <p><a class=cancel_unread id=<!-- tmpl_var msgid --> onclick="cancel_unread(<!-- tmpl_var msgid -->);" 
+      href="javascript:void(0);"
+      nexturl="http://<!-- tmpl_var host -->/view?blogid=<!-- tmpl_var owner-blogid -->">see all</a></p>
+    </div>
+  <!-- /tmpl_loop -->
+  </div>
+  <div id=sidebar>
+    <!-- tmpl_var sidebar -->
+  </div>
+</body>
+</html>

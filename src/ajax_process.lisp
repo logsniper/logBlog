@@ -1,0 +1,22 @@
+(in-package :logsniper.logBlog)
+
+(defun login-response-json ()
+  (with-cookie-user (cookie-userinfo)
+    (with-output-to-string (stream)
+      (let* ((password (hunchentoot:post-parameter "password"))
+             (email (hunchentoot:post-parameter "email"))
+             (userinfo (query-userinfo-by-email email)))
+        (if (check-authentication userinfo password)
+          (progn (update-user-info-cookie userinfo)
+                 (format stream "{'status':'11'}"))
+          (format stream "{'status':'12'}")))
+      stream)))
+
+(defun cancel-unread-message ()
+  (with-cookie-user (cookie-userinfo)
+    (if cookie-userinfo
+      (with-output-to-string (stream)
+        (let ((msgid (string-to-int (hunchentoot:get-parameter "msgid"))))
+          (setf (new-reply cookie-userinfo)
+                (remove-given-value-from-list (new-reply cookie-userinfo) msgid)))
+        (format stream "{'unread_num': ~a}" (length (new-reply cookie-userinfo)))))))

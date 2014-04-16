@@ -3,7 +3,8 @@
       <p>
       <div><!-- tmpl_var author -->:</div>
       <div><!-- tmpl_var content --></div>
-      <div><a href="http://<!-- tmpl_var host -->/view?blogid=<!-- tmpl_var owner-blogid -->">see all</a></div>
-      </p>
+      <div><a class=cancel_unread id=<!-- tmpl_var msgid --> onclick="cancel_unread(<!-- tmpl_var msgid -->);" 
+      href="javascript:void(0);"
+      nexturl="http://<!-- tmpl_var host -->/view?blogid=<!-- tmpl_var owner-blogid -->">see all</a></div>
     </div>
   <!-- /tmpl_loop -->

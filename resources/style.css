@@ -48,8 +48,7 @@ div {
     top: 0px;
     left: 0px;
     z-index: 199;
-    border-left-width: 0px;
-    border-right-width: 0px;
+    border: 0;
     height: 40px;
     width: 100%;
     position: fixed;
@@ -67,12 +66,22 @@ div {
     padding: 8px 20px;
 }
 
-#navigator a {
-    color:white;
+#navigator a {color:white;}
+#navigator a:visited {color:white;}
+
+#unread_hint {
+    background:white;
+    top: 40px;
+    right: 0px;
+    position:fixed;
+    text-align: right;
+    height: 30px;
+    width: 160px;
+    color: #4672BF;
+    opacity: 0.8;
 }
-#navigator a:visited {
-    color:white;
-}
+#unread_hint a {color:#4672BF;}
+#unread_hint a:visited {color:#4672BF;}
 
 #maininfo {
     width: 780px;

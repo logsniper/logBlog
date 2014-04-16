@@ -102,7 +102,9 @@
             (forbidden :initform 0
                        :accessor forbidden)
             (manager :initform nil
-                     :accessor manager)))
+                     :accessor manager)
+            (new-reply :initform nil
+                       :accessor new-reply)))
 
 (defmacro def-elephant-root (pset-name)
   (with-gensyms (item)

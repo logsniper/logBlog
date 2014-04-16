@@ -87,6 +87,54 @@ function insertParagraphIDafter(lastID) {
     insertNewBlock(newID);
 }
 
+function jumpBack() {
+    if (document.referrer == "") {
+        setTimeout(function(){location.href = "/index"}, 3000);
+    } else {
+        setTimeout(function(){location.href = document.referrer}, 3000);
+    }
+}
+
+function ajaxLogin(e) {
+    e.preventDefault();
+    var email = $("#login_email").val();
+    var psw = $("#login_psw").val();
+    if (email != "" && psw != "") {
+        //var htmlobj = $.ajax({url:"/ajax_login", async:false, type:"POST", data:{"email":email, "password":psw}});
+        var postData = {"email":email, "password":psw};
+        $.post("ajax_login", postData, function (responseData, stat) {
+            var hintinfo = "";
+            var jump = false;
+            if (stat == "success") {
+                var json = eval('('+responseData+')');
+                if (json.status == "11") {
+                    $("#login_form").hide();
+                    hintinfo = "登陆成功, 3秒后即将跳转到前一页面";
+                    jump = true;
+                } else {
+                    hintinfo = "用户名、密码错误";
+                }
+            } else {
+                hintinfo = "由于内部原因登录失败";
+            }
+            $("#login_hint").hide().text(hintinfo).slideDown();
+            if (jump) {
+                jumpBack();
+            }
+        });
+    } else {
+        $("#login_hint").hide().text("邮箱或密码不能为空.").slideDown();
+    }
+}
+
+function cancel_unread(msgid) {
+    $.get("cancel_unread?msgid=" + msgid, function (responseData, stat) {
+        if (stat == "success") {
+            location.href = $("a.cancel_unread#"+msgid).attr('nexturl');
+        }
+    });
+}
+
 $(function() {
     $("#register_submit").click(function(e) {
         e.preventDefault();
@@ -98,11 +146,16 @@ $(function() {
         }
     });
 });
+
 $(function () {
     $("img.photo").lazyload({
         threshold : 200,
         effect : "fadeIn"
     });
+});
+
+$(function () {
+    $("#login_submit").click(ajaxLogin);
 });
 
 /* Google Analytics begin */

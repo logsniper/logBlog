@@ -86,3 +86,9 @@
   (with-output-to-string (stream)
     (format stream "~{~a~^, ~}" str-list)
     stream))
+
+(defun remove-given-value-from-list (l v)
+  (loop for cur in l
+        when (not (equal cur v))
+        collect cur))
+
