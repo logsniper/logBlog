@@ -136,6 +136,11 @@ div {
     width: 480px;
 }
 
+#maininfo img.photo {
+    padding: 0;
+    margin: 0;
+    max-width: 720px;
+}
 
 div.odd {
     background: white;

