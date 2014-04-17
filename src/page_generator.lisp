@@ -127,7 +127,6 @@
 (defun generate-blog-list-page ()
   "Generate the index page on which lists all valid blog posts"
   (with-cookie-user (userinfo)
-    (refresh-database-connection)
     (let ((need-tag (hunchentoot:get-parameter "tag")))
       (with-output-to-string (stream)
         (html-template:fill-and-print-template
@@ -318,6 +317,7 @@
         (hunchentoot:create-regex-dispatcher "^/navigator$" 'generate-navigator-page)
         (hunchentoot:create-regex-dispatcher "^/view$" 'generate-blog-view-page)
         (hunchentoot:create-regex-dispatcher "^/submit_message$" 'answer-submit-message)
+        (hunchentoot:create-regex-dispatcher "^/ajax_submit_message$" 'ajax_submit_message_response)
         (hunchentoot:create-regex-dispatcher "^/register$" 'generate-register-page)
         (hunchentoot:create-regex-dispatcher "^/reg_response$" 'generate-register-response-page)
         (hunchentoot:create-regex-dispatcher "^/login$" 'generate-login-page)

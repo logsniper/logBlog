@@ -1,12 +1,12 @@
 
 (load "./src/package.lisp")
-(load "./src/conf.lisp")
+(load "./conf/conf.lisp")
 (load "./src/util.lisp")
 (load "./src/db_def.lisp")
 (load "./src/authenticate.lisp")
 (load "./src/db_util.lisp")
-(load "./src/ajax_process.lisp")
 (load "./src/page_generator.lisp")
+(load "./src/ajax_process.lisp")
 
 (in-package :logsniper.logBlog)
 

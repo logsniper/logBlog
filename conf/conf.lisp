@@ -17,3 +17,5 @@
 (defparameter *access-log-path* #P"./log/access.log")
 
 (defparameter *message-log-path* #P"./log/message.log")
+
+(defparameter *db-connection-refresh-frequency* 63)

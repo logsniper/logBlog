@@ -3,12 +3,12 @@
 /* lazyload plugin ends*/
 
 function leaveMessageForm (parent_msgid, author) {
-    $("#leave_a_msg .rpmsgid").remove();
+    $("#leave_a_msg #input_rpmsg").remove();
     var form = "<div id=\"leave_a_msg\">" + $("#leave_a_msg").html() + "</div>";
     $("#leave_a_msg").remove();
     if (parent_msgid >= 0) {
-        $("#"+parent_msgid).append(form);
-        var rplMsgInfo = "<input class=\"rpmsgid\" type=\"hidden\" name=\"rpmsg\" value=" + parent_msgid + " />";
+        $("#"+parent_msgid+".reply_msg").before(form);
+        var rplMsgInfo = "<input id=\"input_rpmsg\" type=\"hidden\" name=\"rpmsg\" value=" + parent_msgid + " />";
         $("#leave_a_msg form").append(rplMsgInfo);
         $("#leave_a_msg textarea").text("回复" + author + ": ");
     } else {
@@ -133,6 +133,60 @@ function cancel_unread(msgid) {
             location.href = $("a.cancel_unread#"+msgid).attr('nexturl');
         }
     });
+}
+
+function ajaxSubmitMessage() {
+    var postData;
+    var content = $("#msg_content").val();
+    var blogid = $("#input_blogid").val();
+    var rpmsgid = -1;
+    var hierarchy = 1;
+    var doPost = true;
+    if ($("#input_rpmsg").val() != undefined) {
+        rpmsgid = $("#input_rpmsg").val();
+        // hierarchy只分奇偶，如果前一条是odd，则当前为even，取值2；否则为1
+        hierarchy = $("#" + rpmsgid + ".message").attr('hierarchy') == "odd" ? 2 : 1; 
+    }
+    if ($("#input_email").val() == undefined) {
+        if (rpmsgid == -1) {
+            postData = {'blogid':blogid, 'hierarchy': hierarchy, 'content': content};
+        } else {
+            postData = {'blogid':blogid, 'hierarchy': hierarchy, 'content': content, 'rpmsg': rpmsgid};
+        }
+    } else {
+        var email = $("#input_email").val();
+        var psw = $("#input_psw").val();
+        var author = $("#input_author").val();
+        if (email == "" || psw == "" || author == "") {
+            $("#leave_msg_hint").text("邮箱、昵称和密码不能为空.");
+            doPost = false;
+        } else if (!validateEmail(email)) {
+            $("#leave_msg_hint").text("邮箱地址不合法.INVALID EMAIL ADDRESS.");
+            doPost = false;
+        } else {
+            if (rpmsgid == -1) {
+                postData = {'blogid':blogid, 'hierarchy': hierarchy, 'content': content,
+                    'email': email, 'password': psw, 'author': author};
+            } else {
+                postData = {'blogid':blogid, 'hierarchy': hierarchy, 'content': content, 'rpmsg': rpmsgid, 
+                    'email': email, 'password': psw, 'author': author};
+            }
+        }
+    }
+    if (doPost) {
+        $.post("ajax_submit_message", postData, function (responseData, stat) {
+            if (stat == "success") {
+                if (rpmsgid == -1) {
+                    $("#new.insert_msg_pos").after(responseData);
+                } else {
+                    $("#" + rpmsgid + ".insert_msg_pos").after(responseData);
+                }
+                $("#leave_a_msg").hide();
+            } else {
+                $("#leave_msg_hint").text("系统内部错误.");
+            }
+        });
+    }
 }
 
 $(function() {

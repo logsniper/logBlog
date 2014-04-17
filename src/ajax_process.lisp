@@ -20,3 +20,21 @@
           (setf (new-reply cookie-userinfo)
                 (remove-given-value-from-list (new-reply cookie-userinfo) msgid)))
         (format stream "{'unread_num': ~a}" (length (new-reply cookie-userinfo)))))))
+
+(defun ajax_submit_message_response ()
+  (with-cookie-user (userinfo)
+    (let ((blog (get-blog (string-to-int (hunchentoot:post-parameter "blogid")))))
+      (if blog
+        (let* ((new-msg (add-message (hunchentoot:post-parameter "content")
+                                     (hunchentoot:real-remote-addr)
+                                     (blogid blog)))
+               (replied-msgid (string-to-int (hunchentoot:post-parameter "rpmsg")))
+               (replied-msg (get-message replied-msgid))) 
+          (if new-msg
+            (if (and replied-msgid replied-msg)
+              (progn
+                (push new-msg (repliers replied-msg))
+                (push (msgid new-msg) (new-reply (query-userinfo-by-email (email replied-msg)))))
+              (push new-msg (messages blog))))
+          (log-info "[reply-info]isreply:~a,replied_author:~a" (and new-msg replied-msgid replied-msg) (if replied-msg (author replied-msg) nil))
+          (recursively-decorate-message new-msg :depth (string-to-int (hunchentoot:post-parameter "hierarchy"))))))))

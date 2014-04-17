@@ -97,6 +97,8 @@
 (defmacro with-cookie-user ((userinfo) &body body)
   `(let ((,userinfo (get-cookie-user-info)))
      (incf (pageview-count (get-items-counter)))
+     (if (= (mod (pageview-count (get-items-counter)) *db-connection-refresh-frequency*) 0)
+        (refresh-database-connection))
      (if ,userinfo (log-info "[user-info]uri:~a,author:~a,email:~a,lastip:~a" (hunchentoot:request-uri*) (author ,userinfo) (email ,userinfo) (last-ip ,userinfo)))
      ,@body))
 

@@ -27,21 +27,22 @@
       <a name="messages"/>
       <a id=non_reply_msg href="javascript:void(0)" onclick="leaveMessageForm(-1,'')">留言</a>
       <div id=leave_a_msg>
-      <form id=register_form method="post" action="submit_message?blogid=<!-- tmpl_var blogid -->">
+      <form id=leave_msg_form method="post" action="submit_message?blogid=<!-- tmpl_var blogid -->">
         <table>
+        <input id=input_blogid type="hidden" name="blogid" value=<!-- tmpl_var blogid --> />
+        <tr><td></td><td id="leave_msg_hint"></td></tr>
         <!-- tmpl_if non-cookie -->
         <tr>
           <td>Nickname:</td>
-          <td><input type="text" name="author"/></td>
+          <td><input id=input_author type="text" name="author"/></td>
         </tr>
         <tr>
           <td>email:</td>
           <td><input id="input_email" type="text" name="email"/></td>
-          <td id="input_email_hint"></td>
         </tr>
         <tr>
           <td>password:</td>
-          <td><input type="password" name="password"/></td>
+          <td><input id=input_psw type="password" name="password"/></td>
         </tr>
         <!-- tmpl_else -->
         <tr>
@@ -52,15 +53,16 @@
         <tr>
           <td>Content:</td>
           <!-- tmpl_if is-reply -->
-            <input type="hidden" name="rpmsg" value="<!-- tmpl_var replied-msgid -->"/>
+            <input id=input_rpmsg type="hidden" name="rpmsg" value="<!-- tmpl_var replied-msgid -->"/>
           <!-- /tmpl_if -->
-          <td><textarea name="content"><!-- tmpl_if is-reply -->回复<!-- tmpl_var replied-author -->: <!-- /tmpl_if --></textarea></td>
+          <td><textarea id=msg_content name="content"><!-- tmpl_if is-reply -->回复<!-- tmpl_var replied-author -->: <!-- /tmpl_if --></textarea></td>
         </tr>
         </table>
-        <input id=register_submit type="submit" value="Submit"/>
+        <input type="button" value="提交" onclick="ajaxSubmitMessage();"/>
         <input type="button" value="收起回复" onclick="$('#leave_a_msg').slideUp();"/>
       </form>
       </div>
+    <a class=insert_msg_pos id=new name="message_new"></a>
     <!-- tmpl_var recursive-messages -->
     </div>
   </div>

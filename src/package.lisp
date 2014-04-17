@@ -1,4 +1,3 @@
-
 (defpackage :logsniper.logBlog
     (:use :common-lisp))
 

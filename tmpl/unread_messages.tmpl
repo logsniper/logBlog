@@ -10,13 +10,13 @@
   <!-- tmpl_var navigator -->
   <div id=maininfo>
   <!-- tmpl_loop message-posts -->
-    <div id=message>
+    <div class=message>
       <p>On <!-- tmpl_var time --></p>
       <p><!-- tmpl_var author --> said:</p>
       <p class=text><!-- tmpl_var content --></p>
       <p><a class=cancel_unread id=<!-- tmpl_var msgid --> onclick="cancel_unread(<!-- tmpl_var msgid -->);" 
       href="javascript:void(0);"
-      nexturl="http://<!-- tmpl_var host -->/view?blogid=<!-- tmpl_var owner-blogid -->">see all</a></p>
+      nexturl="http://<!-- tmpl_var host -->/view?blogid=<!-- tmpl_var owner-blogid -->#message_<!-- tmpl_var msgid -->">查看</a></p>
     </div>
   <!-- /tmpl_loop -->
   </div>

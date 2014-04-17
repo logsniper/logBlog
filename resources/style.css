@@ -123,7 +123,7 @@ div {
     border: 1px solid grey;
 }
 
-#message {
+.message {
     margin: 3px 1px 1px 5px;
     padding: 3px 5px;
     border-style: solid;
@@ -131,7 +131,7 @@ div {
     font-size: 12px;
 }
 
-#message .text {
+.message .text {
     border:none;
     font-size: 16px;
 }
@@ -151,11 +151,11 @@ div {
     max-width: 720px;
 }
 
-div.odd {
+[hierarchy=odd] {
     background: white;
 }
 
-div.even {
+[hierarchy=even] {
     background: #DDDDFF;
 }
 

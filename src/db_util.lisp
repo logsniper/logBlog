@@ -82,4 +82,4 @@
 (defun refresh-database-connection ()
   (close-store)
   (open-store *store-spec*)
-  (log-warning "refreshed db connection"))
+  (log-warning "refreshed db connection, pv count:~a" (pageview-count (get-items-counter))))
