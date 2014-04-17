@@ -6,7 +6,10 @@ body {
     font-family: Monospace;
     background-repeat: repeat;
     background-attachment:fixed;
+    word-break: break-all;
 }
+
+a, a:visited {color:#4672BF;}
 
 h1 {
     font-size:36px;
@@ -66,8 +69,7 @@ div {
     padding: 8px 20px;
 }
 
-#navigator a {color:white;}
-#navigator a:visited {color:white;}
+#navigator a, #navigator a:visited {color:white;}
 
 #unread_hint {
     background:white;
@@ -80,8 +82,6 @@ div {
     color: #4672BF;
     opacity: 0.8;
 }
-#unread_hint a {color:#4672BF;}
-#unread_hint a:visited {color:#4672BF;}
 
 #maininfo {
     width: 780px;

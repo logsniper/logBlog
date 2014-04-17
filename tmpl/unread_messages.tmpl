@@ -9,12 +9,14 @@
 <body>
   <!-- tmpl_var navigator -->
   <div id=maininfo>
+  <input id=mark_all_unread_button type="button" value="全部标为已读"/>
+  <p id=mark_response_hint></p>
   <!-- tmpl_loop message-posts -->
-    <div class=message>
+    <div class="message unread">
       <p>On <!-- tmpl_var time --></p>
       <p><!-- tmpl_var author --> said:</p>
       <p class=text><!-- tmpl_var content --></p>
-      <p><a class=cancel_unread id=<!-- tmpl_var msgid --> onclick="cancel_unread(<!-- tmpl_var msgid -->);" 
+      <p><a class=cancel_unread id=m<!-- tmpl_var msgid --> onclick="cancel_unread(<!-- tmpl_var msgid -->);" 
       href="javascript:void(0);"
       nexturl="http://<!-- tmpl_var host -->/view?blogid=<!-- tmpl_var owner-blogid -->#message_<!-- tmpl_var msgid -->">查看</a></p>
     </div>

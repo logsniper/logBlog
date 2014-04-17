@@ -4,10 +4,10 @@
 
 function leaveMessageForm (parent_msgid, author) {
     $("#leave_a_msg #input_rpmsg").remove();
-    var form = "<div id=\"leave_a_msg\">" + $("#leave_a_msg").html() + "</div>";
+    var form = "<div id=leave_a_msg>" + $("#leave_a_msg").html() + "</div>";
     $("#leave_a_msg").remove();
     if (parent_msgid >= 0) {
-        $("#"+parent_msgid+".reply_msg").before(form);
+        $(".reply_msg#m"+parent_msgid).before(form);
         var rplMsgInfo = "<input id=\"input_rpmsg\" type=\"hidden\" name=\"rpmsg\" value=" + parent_msgid + " />";
         $("#leave_a_msg form").append(rplMsgInfo);
         $("#leave_a_msg textarea").text("回复" + author + ": ");
@@ -41,41 +41,44 @@ function updateParagraphIDGivenClass(newID, class_name) {
 
 function updateParagraphAddLink(newID) {
     $(".para_add").each(function() {
-        var curID = parseInt($(this).attr("id"));
+        var curID = parseInt($(this).attr("sid"));
         if (curID >= newID) {
             curID += 1;
-            $(this).attr({"onclick": "insertParagraphIDafter(" + curID + ")", "id": curID});
+            $(this).attr({"onclick": "insertParagraphIDafter(" + curID + ")", "id": curID, "sid": curID});
         }
     });
 }
 
 function updateParagraphInsertPos(newID) {
     $(".insert_pos").each(function() {
-        var posid = parseInt($(this).attr("id"));
+        var posid = parseInt($(this).attr("sid"));
         if (posid >= newID) {
-            $(this).attr("id", posid + 1);
+            posid += 1;
+            $(this).attr({"id": "p" + posid, "sid": posid});
         }
     });
 }
 
 function insertNewBlock(newID) {
     var blockContent = [
-'<tr class=insert_pos id=' + newID + ' ><td>++++++++++</td></tr>',
+'<tr class=insert_pos id=p' + newID + ' sid=' + newID + '><td>++++++++++</td></tr>',
 '    <tr>',
 '      <td>',
-'        Paragraph: NEW',
-'        <input class=para_type type="radio" name="para_type_' + newID + '" value="ptype-head"/> head',
-'        <input class=para_type type="radio" name="para_type_' + newID + '" value="ptype-body" checked="true"/> text',
-'        <input class=para_type type="radio" name="para_type_' + newID + '" value="ptype-image"/> image',
+'        Paragraph: NEW, TYPE: ',
+'        <select class=para_type name="para_type_' + newID + '">',
+'        <option value="ptype-head">head</option>',
+'        <option value="ptype-body" selected="selected">body</option>',
+'        <option value="ptype-image">image</option>',
+'        </select>',
 '      </td>',
 '    </tr>',
 '    <tr>',
 '      <td><textarea class=para_text name="para_text_' + newID + '"></textarea></td>',
 '    </tr>',
-'<tr><td><a id=' + newID + ' class=para_add href="javascript:void(0)" onclick="insertParagraphIDafter(' + newID + ')">add paragraph</a></td></tr>'
+'<tr><td><a id=p' + newID + ' class=para_add sid=' + newID + ' href="javascript:void(0)" onclick="insertParagraphIDafter(' + newID + ')">add paragraph</a></td></tr>'
     ].join('\n');
     var find_posid = newID + 1;
-    $(".insert_pos#" + find_posid).before(blockContent);
+    $(".insert_pos#p" + find_posid).before(blockContent);
 }
 
 function insertParagraphIDafter(lastID) {
@@ -130,7 +133,7 @@ function ajaxLogin(e) {
 function cancel_unread(msgid) {
     $.get("cancel_unread?msgid=" + msgid, function (responseData, stat) {
         if (stat == "success") {
-            location.href = $("a.cancel_unread#"+msgid).attr('nexturl');
+            location.href = $("a.cancel_unread#m"+msgid).attr('nexturl');
         }
     });
 }
@@ -145,7 +148,7 @@ function ajaxSubmitMessage() {
     if ($("#input_rpmsg").val() != undefined) {
         rpmsgid = $("#input_rpmsg").val();
         // hierarchy只分奇偶，如果前一条是odd，则当前为even，取值2；否则为1
-        hierarchy = $("#" + rpmsgid + ".message").attr('hierarchy') == "odd" ? 2 : 1; 
+        hierarchy = $(".message#m" + rpmsgid).attr('hierarchy') == "odd" ? 2 : 1; 
     }
     if ($("#input_email").val() == undefined) {
         if (rpmsgid == -1) {
@@ -177,9 +180,9 @@ function ajaxSubmitMessage() {
         $.post("ajax_submit_message", postData, function (responseData, stat) {
             if (stat == "success") {
                 if (rpmsgid == -1) {
-                    $("#new.insert_msg_pos").after(responseData);
+                    $(".insert_msg_pos#new").after(responseData);
                 } else {
-                    $("#" + rpmsgid + ".insert_msg_pos").after(responseData);
+                    $(".insert_msg_pos#m" + rpmsgid).after(responseData);
                 }
                 $("#leave_a_msg").hide();
             } else {
@@ -187,6 +190,16 @@ function ajaxSubmitMessage() {
             }
         });
     }
+}
+
+function mark_all_unread () {
+    $.get("mark_all_unread", function (responseData, stat) {
+        if (stat == "success") {
+            var json = eval('('+responseData+')');
+            $("#mark_response_hint").text("标记成功.");
+            $(".message.unread").remove();
+        }
+    });
 }
 
 $(function() {
@@ -210,6 +223,10 @@ $(function () {
 
 $(function () {
     $("#login_submit").click(ajaxLogin);
+});
+
+$(function () {
+    $("#mark_all_unread_button").click(mark_all_unread);
 });
 
 /* Google Analytics begin */

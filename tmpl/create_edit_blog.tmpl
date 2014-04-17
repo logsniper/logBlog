@@ -27,32 +27,32 @@
     <tr>
       <td>blog status:
         <input type="radio" name="blog_status" value="draft" 
-               <!-- tmpl_unless published -->checked="true"<!-- /tmpl_unless --> /> draft
+               <!-- tmpl_unless published -->checked="checked"<!-- /tmpl_unless --> /> draft
         <input type="radio" name="blog_status" value="published" 
-               <!-- tmpl_if published -->checked="true"<!-- /tmpl_if --> /> published
+               <!-- tmpl_if published -->checked="checked"<!-- /tmpl_if --> /> published
       </td>
     </tr>
   
-    <tr><td><a id=-1 href="javascript:void(0)" onclick="insertParagraphIDafter(-1)">add paragraph</a></td></tr>
+    <tr><td><a id=p-1 href="javascript:void(0)" onclick="insertParagraphIDafter(-1)">add paragraph</a></td></tr>
     <!-- tmpl_loop body-paragraph -->
-    <tr class=insert_pos id=<!-- tmpl_var sequence --> ><td>++++++++++</td></tr>
+    <tr class=insert_pos id=p<!-- tmpl_var sequence --> sid=<!-- tmpl_var sequence --> ><td>++++++++++</td></tr>
     <tr>
       <td>
-        Paragraph: <!-- tmpl_var sequence -->
-        <input class=para_type type="radio" name="para_type_<!-- tmpl_var sequence -->" value="ptype-head"
-                <!-- tmpl_if headp -->checked="true"<!-- /tmpl_if --> /> head
-        <input class=para_type type="radio" name="para_type_<!-- tmpl_var sequence -->" value="ptype-body"
-                <!-- tmpl_if bodyp -->checked="true"<!-- /tmpl_if --> /> text
-        <input class=para_type type="radio" name="para_type_<!-- tmpl_var sequence -->" value="ptype-image"
-                <!-- tmpl_if imagep -->checked="true"<!-- /tmpl_if --> /> image
+        Paragraph: <!-- tmpl_var sequence -->, TYPE: 
+        <select class=para_type name="para_type_<!-- tmpl_var sequence -->">
+        <option value="ptype-head" <!-- tmpl_if headp -->selected="selected"<!-- /tmpl_if --> >head</option>
+        <option value="ptype-body" <!-- tmpl_if bodyp -->selected="selected"<!-- /tmpl_if --> >body</option>
+        <option value="ptype-image" <!-- tmpl_if imagep -->selected="selected"<!-- /tmpl_if --> >image</option>
+        </select>
       </td>
     </tr>
     <tr>
       <td><textarea class=para_text name="para_text_<!-- tmpl_var sequence -->"><!-- tmpl_var content --></textarea></td>
     </tr>
-    <tr><td><a id=<!-- tmpl_var sequence --> class=para_add href="javascript:void(0)" onclick="insertParagraphIDafter(<!-- tmpl_var sequence -->)">add paragraph</a></td></tr>
+    <tr><td><a id=p<!-- tmpl_var sequence --> class=para_add  sid=<!-- tmpl_var sequence --> 
+               href="javascript:void(0)" onclick="insertParagraphIDafter(<!-- tmpl_var sequence -->)">add paragraph</a></td></tr>
     <!-- /tmpl_loop -->
-    <tr class=insert_pos id=<!-- tmpl_var para-num --> ><td>++++++++++</td></tr>
+    <tr class=insert_pos id=p<!-- tmpl_var para-num --> sid=<!-- tmpl_var para-num --> ><td>++++++++++</td></tr>
     </table>
     <input type="submit" value="save"/>
   </form>

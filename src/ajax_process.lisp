@@ -21,7 +21,7 @@
                 (remove-given-value-from-list (new-reply cookie-userinfo) msgid)))
         (format stream "{'unread_num': ~a}" (length (new-reply cookie-userinfo)))))))
 
-(defun ajax_submit_message_response ()
+(defun ajax-submit-message-response ()
   (with-cookie-user (userinfo)
     (let ((blog (get-blog (string-to-int (hunchentoot:post-parameter "blogid")))))
       (if blog
@@ -38,3 +38,9 @@
               (push new-msg (messages blog))))
           (log-info "[reply-info]isreply:~a,replied_author:~a" (and new-msg replied-msgid replied-msg) (if replied-msg (author replied-msg) nil))
           (recursively-decorate-message new-msg :depth (string-to-int (hunchentoot:post-parameter "hierarchy"))))))))
+
+(defun mark-all-unread-messages ()
+  (with-cookie-user (userinfo)
+    (if userinfo
+      (setf (new-reply userinfo) ()))
+    "{'status': 'success'}"))
