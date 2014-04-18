@@ -22,6 +22,9 @@
     (get-instance-by-value 'message-post 'msgid msgid)
     nil))
 
+(defun get-all-messages ()
+  (nreverse (get-instances-by-range 'message-post 'timestamp nil nil)))
+
 (defun get-non-nil-blog (blogid)
   (let ((blog (get-blog blogid)))
     (if blog blog (get-empty-blog))))

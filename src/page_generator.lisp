@@ -25,9 +25,9 @@
         #P"./navigator.tmpl"
         (if cookie-userinfo
           (list :username (author cookie-userinfo)
-                :has_unread (> (length (new-reply cookie-userinfo)) 0)
                 :unread_num (length (new-reply cookie-userinfo)))
-          (list :username nil))
+          (list :username nil
+                :unread_num 0))
       :stream stream))))
 
 (defun generate-recent-messages ()
@@ -37,7 +37,7 @@
       (list :host *host-address*
             :message-posts
             (loop for i from 1 to 5
-                  for message-post in (nreverse (get-instances-by-range 'message-post 'timestamp nil nil))
+                  for message-post in (get-all-messages)
                   collect (list :author (author message-post)
                                 :owner-blogid (owner-blogid message-post)
                                 :msgid (msgid message-post)
@@ -315,6 +315,8 @@
         (hunchentoot:create-static-file-dispatcher-and-handler "/favicon.ico" #P"resources/favicon.ico")
         (hunchentoot:create-folder-dispatcher-and-handler "/images/" *image-path*)
         (hunchentoot:create-regex-dispatcher "^/navigator$" 'generate-navigator-page)
+        (hunchentoot:create-regex-dispatcher "^/check_update$" 'check-update)
+        (hunchentoot:create-regex-dispatcher "^/ajax_recent_msg$" 'ajax-recent-message)
         (hunchentoot:create-regex-dispatcher "^/view$" 'generate-blog-view-page)
         (hunchentoot:create-regex-dispatcher "^/submit_message$" 'answer-submit-message)
         (hunchentoot:create-regex-dispatcher "^/ajax_submit_message$" 'ajax-submit-message-response)

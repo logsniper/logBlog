@@ -198,8 +198,23 @@ function mark_all_unread () {
             var json = eval('('+responseData+')');
             $("#mark_response_hint").text("标记成功.");
             $(".message.unread").remove();
+            $("#unread_hint").hide();
         }
     });
+}
+
+function getURLParameter (sParam) {
+    var sPageURL = window.location.search.substring(1);
+    var sURLVariables = sPageURL.split('&');
+    for (var i = 0; i < sURLVariables.length; i++) 
+    {
+        var sParameterName = sURLVariables[i].split('=');
+        if (sParameterName[0] == sParam) 
+        {
+            return sParameterName[1];
+        }
+    }
+    return undefined;
 }
 
 $(function() {
@@ -227,6 +242,48 @@ $(function () {
 
 $(function () {
     $("#mark_all_unread_button").click(mark_all_unread);
+});
+
+$(document).ready(function () {
+    if (parseInt($("#unread_num").text()) == 0) {
+        $("#unread_hint").hide();
+    }
+    function check_update () { 
+        var latestMsgID = -1;
+        if ($(".comments .recent .cancel_unread").get(0) != undefined) {
+            // attr返回对象数组中第一个元素的属性
+            latestMsgID = parseInt($(".comments .recent .cancel_unread").attr("mid"));
+        }
+        var dataPost = {'latest_msg_id': latestMsgID};
+        $.post("check_update", dataPost, function (responseData, stat) {
+            if (stat == "success") {
+                var json = eval("(" + responseData + ")");
+                $("#unread_num").text(json.unread_num);
+                if (json.unread_num > 0) {
+                    $("#unread_hint").show();
+                } else {
+                    $("#unread_hint").hide();
+                }
+                if (json.has_new_msg > 0) {
+                    $.get("ajax_recent_msg", function (responseData, stat) {
+                        if (stat == "success") {
+                            $(".comments .recent").hide().html(responseData).slideDown();
+                        }
+                    });
+                }
+            }
+        });
+    }
+    setInterval(check_update, 15000);
+});
+
+/* highlight given message */
+$(function () {
+    $(".message").each(function () {
+        if (getURLParameter("hlm") == $(this).attr('id')) {
+            $(this).children('.hlzone').css('background', '#fff2a8');
+        }
+    });
 });
 
 /* Google Analytics begin */

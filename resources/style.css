@@ -185,3 +185,5 @@ div.sidebar_title {
     padding-left: 5px;
     float:middle;
 }
+
+div#unread_num {display: inline;}

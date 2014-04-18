@@ -44,3 +44,19 @@
     (if userinfo
       (setf (new-reply userinfo) ()))
     "{'status': 'success'}"))
+
+(defun check-update ()
+  (with-cookie-user (userinfo)
+    (with-output-to-string (stream)
+      (let ((unread_num 0)
+            (has_new_msg 0)
+            (latest_msg_id (string-to-int (hunchentoot:post-parameter "latest_msg_id"))))
+        (if userinfo (setf unread_num (length (new-reply userinfo))))
+        (if (not (equal latest_msg_id (msgid (car (get-all-messages)))))
+            (setf has_new_msg 1))
+        (format stream "{'unread_num': ~a, 'has_new_msg': ~a}" unread_num has_new_msg)
+        stream))))
+
+(defun ajax-recent-message ()
+  (with-cookie-user (userinfo)
+    (generate-recent-messages)))
