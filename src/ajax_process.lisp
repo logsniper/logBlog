@@ -8,8 +8,8 @@
              (userinfo (query-userinfo-by-email email)))
         (if (check-authentication userinfo password)
           (progn (update-user-info-cookie userinfo)
-                 (format stream "{'status':'11'}"))
-          (format stream "{'status':'12'}")))
+                 (format stream "{\"status\":\"11\"}"))
+          (format stream "{\"status\":\"12\"}")))
       stream)))
 
 (defun cancel-unread-message ()
@@ -19,7 +19,7 @@
         (let ((msgid (string-to-int (hunchentoot:get-parameter "msgid"))))
           (setf (new-reply cookie-userinfo)
                 (remove-given-value-from-list (new-reply cookie-userinfo) msgid)))
-        (format stream "{'unread_num': ~a}" (length (new-reply cookie-userinfo)))))))
+        (format stream "{\"unread_num\": ~a}" (length (new-reply cookie-userinfo)))))))
 
 (defun ajax-submit-message-response ()
   (with-cookie-user (userinfo)
@@ -43,7 +43,7 @@
   (with-cookie-user (userinfo)
     (if userinfo
       (setf (new-reply userinfo) ()))
-    "{'status': 'success'}"))
+    "{\"status\": \"success\"}"))
 
 (defun check-update ()
   (with-cookie-user (userinfo)
@@ -54,7 +54,7 @@
         (if userinfo (setf unread_num (length (new-reply userinfo))))
         (if (not (equal latest_msg_id (msgid (car (get-all-messages)))))
             (setf has_new_msg 1))
-        (format stream "{'unread_num': ~a, 'has_new_msg': ~a}" unread_num has_new_msg)
+        (format stream "{\"unread_num\": ~a, \"has_new_msg\": ~a}" unread_num has_new_msg)
         stream))))
 
 (defun ajax-recent-message ()

@@ -26,10 +26,11 @@ function validateEmail(email) {
 function updateParagraphIDGivenClass(newID, class_name) {
     $("." + class_name).each(function () {
         var cur_arr = $(this).attr("name").split("_");
-        var curID = cur_arr[cur_arr.length - 1];
+        var L = cur_arr.length;
+        var curID = cur_arr[L - 1];
         if (curID >= newID) {
             var new_attr = "";
-            for (var i = 0; i < cur_arr.length - 1; ++ i) {
+            for (var i = 0; i < L - 1; ++ i) {
                 new_attr += cur_arr[i] + "_";
             }
             ++ curID;
@@ -60,23 +61,22 @@ function updateParagraphInsertPos(newID) {
 }
 
 function insertNewBlock(newID) {
-    var blockContent = [
-'<tr class=insert_pos id=p' + newID + ' sid=' + newID + '><td>++++++++++</td></tr>',
-'    <tr>',
-'      <td>',
-'        Paragraph: NEW, TYPE: ',
-'        <select class=para_type name="para_type_' + newID + '">',
-'        <option value="ptype-head">head</option>',
-'        <option value="ptype-body" selected="selected">body</option>',
-'        <option value="ptype-image">image</option>',
-'        </select>',
-'      </td>',
-'    </tr>',
-'    <tr>',
-'      <td><textarea class=para_text name="para_text_' + newID + '"></textarea></td>',
-'    </tr>',
-'<tr><td><a id=p' + newID + ' class=para_add sid=' + newID + ' href="javascript:void(0)" onclick="insertParagraphIDafter(' + newID + ')">add paragraph</a></td></tr>'
-    ].join('\n');
+    var blockContent = '' +
+'<tr class=insert_pos id=p' + newID + ' sid=' + newID + '><td>++++++++++</td></tr>' +
+'    <tr>' +
+'      <td>' +
+'        Paragraph: NEW, TYPE: ' +
+'        <select class=para_type name="para_type_' + newID + '">' +
+'        <option value="ptype-head">head</option>' +
+'        <option value="ptype-body" selected="selected">body</option>' +
+'        <option value="ptype-image">image</option>' +
+'        </select>' +
+'      </td>' +
+'    </tr>' +
+'    <tr>' +
+'      <td><textarea class=para_text name="para_text_' + newID + '"></textarea></td>' +
+'    </tr>' +
+'<tr><td><a id=p' + newID + ' class=para_add sid=' + newID + ' href="javascript:void(0)" onclick="insertParagraphIDafter(' + newID + ')">add paragraph</a></td></tr>';
     var find_posid = newID + 1;
     $(".insert_pos#p" + find_posid).before(blockContent);
 }
@@ -92,9 +92,9 @@ function insertParagraphIDafter(lastID) {
 
 function jumpBack() {
     if (document.referrer == "") {
-        setTimeout(function(){location.href = "/index"}, 3000);
+        location.href = '/index';
     } else {
-        setTimeout(function(){location.href = document.referrer}, 3000);
+        location.href = document.referrer;
     }
 }
 
@@ -109,10 +109,10 @@ function ajaxLogin(e) {
             var hintinfo = "";
             var jump = false;
             if (stat == "success") {
-                var json = eval('('+responseData+')');
+                var json = JSON.parse(responseData);
                 if (json.status == "11") {
                     $("#login_form").hide();
-                    hintinfo = "登陆成功, 3秒后即将跳转到前一页面";
+                    hintinfo = "登陆成功, <div class=countdown3>3</div>秒后即将跳转到前一页面";
                     jump = true;
                 } else {
                     hintinfo = "用户名、密码错误";
@@ -120,9 +120,9 @@ function ajaxLogin(e) {
             } else {
                 hintinfo = "由于内部原因登录失败";
             }
-            $("#login_hint").hide().text(hintinfo).slideDown();
+            $("#login_hint").hide().html(hintinfo).slideDown();
             if (jump) {
-                jumpBack();
+                countDown($(".countdown3"), 3, jumpBack);
             }
         });
     } else {
@@ -195,7 +195,7 @@ function ajaxSubmitMessage() {
 function mark_all_unread () {
     $.get("mark_all_unread", function (responseData, stat) {
         if (stat == "success") {
-            var json = eval('('+responseData+')');
+            var json = JSON.parse(responseData);
             $("#mark_response_hint").text("标记成功.");
             $(".message.unread").remove();
             $("#unread_hint").hide();
@@ -206,7 +206,8 @@ function mark_all_unread () {
 function getURLParameter (sParam) {
     var sPageURL = window.location.search.substring(1);
     var sURLVariables = sPageURL.split('&');
-    for (var i = 0; i < sURLVariables.length; i++) 
+    var L = sURLVariables.length;
+    for (var i = 0; i < L; i++) 
     {
         var sParameterName = sURLVariables[i].split('=');
         if (sParameterName[0] == sParam) 
@@ -217,7 +218,23 @@ function getURLParameter (sParam) {
     return undefined;
 }
 
-$(function() {
+function countDown(obj, startValue, callback) {
+    if (obj.html() == undefined) return;
+    var intervalID;
+    obj.text(startValue);
+    function repeatable () {
+        -- startValue;
+        if (startValue > 0) {
+            obj.text(startValue);
+        } else {
+            clearInterval(intervalID);
+            callback();
+        }
+    }
+    intervalID = setInterval(repeatable, 1000);
+}
+
+$(document).ready(function() {
     $("#register_submit").click(function(e) {
         e.preventDefault();
         if ($("#input_email").val() == undefined || validateEmail($("#input_email").val())) {
@@ -229,18 +246,18 @@ $(function() {
     });
 });
 
-$(function () {
+$(document).ready(function () {
     $("img.photo").lazyload({
         threshold : 200,
         effect : "fadeIn"
     });
 });
 
-$(function () {
+$(document).ready(function () {
     $("#login_submit").click(ajaxLogin);
 });
 
-$(function () {
+$(document).ready(function () {
     $("#mark_all_unread_button").click(mark_all_unread);
 });
 
@@ -248,7 +265,7 @@ $(document).ready(function () {
     if (parseInt($("#unread_num").text()) == 0) {
         $("#unread_hint").hide();
     }
-    function check_update () { 
+    var check_update = function () { 
         var latestMsgID = -1;
         if ($(".comments .recent .cancel_unread").get(0) != undefined) {
             // attr返回对象数组中第一个元素的属性
@@ -257,7 +274,7 @@ $(document).ready(function () {
         var dataPost = {'latest_msg_id': latestMsgID};
         $.post("check_update", dataPost, function (responseData, stat) {
             if (stat == "success") {
-                var json = eval("(" + responseData + ")");
+                var json = JSON.parse(responseData);
                 $("#unread_num").text(json.unread_num);
                 if (json.unread_num > 0) {
                     $("#unread_hint").show();
@@ -273,17 +290,21 @@ $(document).ready(function () {
                 }
             }
         });
-    }
+    };
     setInterval(check_update, 15000);
 });
 
 /* highlight given message */
-$(function () {
+$(document).ready(function () {
     $(".message").each(function () {
         if (getURLParameter("hlm") == $(this).attr('id')) {
             $(this).children('.hlzone').css('background', '#fff2a8');
         }
     });
+});
+
+$(document).ready(function () {
+    countDown($(".countdown3"), 3, jumpBack);
 });
 
 /* Google Analytics begin */
