@@ -1,6 +1,6 @@
 body {
-    margin-left: 200px;
-    width: 1080px;
+    margin-left: 100px;
+    width: 1200px;
     background: url(images/background.png);
     color: black;
     font-family: Monospace;
@@ -66,12 +66,13 @@ div {
     font-weight: 400;
     font-size: 1em;
     display: list-item;
-    width: 120px;
+    width: 100px;
     float: left;
     padding: 8px 20px;
 }
 
 #navigator a, #navigator a:visited {color:white;}
+#navigator .nav_button:hover {background: lightblue}
 
 #unread_hint {
     background:white;
@@ -86,7 +87,7 @@ div {
 }
 
 #maininfo {
-    width: 780px;
+    width: 900px;
     min-height: 300px;
     display: block;
     float: left;
@@ -118,11 +119,19 @@ div {
     background: #DDDDFF;
 }
 
-#content {
+.content {
     margin: 20px 0 20px 0;
     padding: 0 20px 20px 20px;
     background: white;
     border: 1px solid grey;
+}
+
+.bloglist.content {
+    margin: 20px 0 20px 0;
+    padding: 0;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
 }
 
 .message {

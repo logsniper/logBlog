@@ -10,10 +10,14 @@
   <!-- tmpl_var navigator -->
   <div id=maininfo>
   <!-- tmpl_loop blog-posts -->
-    <div id=content>
+    <div class=content>
       <h1><a href="http://<!-- tmpl_var host-address -->/view?blogid=<!-- tmpl_var blogid -->"><!-- tmpl_var title --></a></h2>
       <div>posted on <!-- tmpl_var time --></div>
       <div>tags: <!-- tmpl_var tags --></div>
+      <div class="bloglist content">
+        <!-- tmpl_var body-part -->
+        <a href="http://<!-- tmpl_var host-address -->/view?blogid=<!-- tmpl_var blogid -->">阅读全部</a>
+      </div>
       <div><!-- tmpl_var msg-num --> comments</div>
     </div>
   <!-- /tmpl_loop -->

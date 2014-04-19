@@ -12,10 +12,12 @@
       (t (log-warning "[decorate-paragraph]failed to judge para-type:~a." (string (para-type para)))))
     stream))
 
-(defun merge-paragraphs (blog)
-  (let ((body ""))
+(defun merge-paragraphs (blog &optional (need-para-num *max-paragraph-num*) (ignore-img nil))
+  (let ((body "") (accept-num 0))
     (loop for para in (body blog)
-          do (setq body (concatenate 'string body (decorate-paragraph para))))
+          when (and (< accept-num need-para-num) (or (not ignore-img) (not (equal (para-type para) 'ptype-image))))
+          do (progn (setq body (concatenate 'string body (decorate-paragraph para)))
+                    (incf accept-num)))
     body))
 
 (defun generate-navigator-page ()
@@ -140,6 +142,7 @@
                                       :title (title blog-post)
                                       :blogid (blogid blog-post)
                                       :time (timestamp-to-string (timestamp blog-post))
+                                      :body-part (merge-paragraphs blog-post 5 t)
                                       :msg-num (msg-num blog-post)
                                       :visitor-count (visitor-count blog-post)
                                       :tags (generate-tags-linker blog-post))))
