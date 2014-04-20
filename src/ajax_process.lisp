@@ -57,6 +57,3 @@
         (format stream "{\"unread_num\": ~a, \"has_new_msg\": ~a}" unread_num has_new_msg)
         stream))))
 
-(defun ajax-recent-message ()
-  (with-cookie-user (userinfo)
-    (generate-recent-messages)))

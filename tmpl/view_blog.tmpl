@@ -9,62 +9,13 @@
 <body>
   <!-- tmpl_var navigator -->
   <div id=maininfo>
-  <h1><!-- tmpl_var title --></h1>
-    <div>
-      <div>Created on <!-- tmpl_var timestamp --></div>
-      <div>Tags:<!-- tmpl_var tags --></div>
-      <div>Read times: <!-- tmpl_var visitor-count -->, Comments: <!-- tmpl_var msg-num --></div>
-      <div class=content>
-        <!-- tmpl_var body -->
-      </div>
-    </div>
+    <!-- tmpl_var blog-maininfo -->
   </div>
   <div id=sidebar>
     <!-- tmpl_var sidebar -->
   </div>
   <div id=msginfo>
-    <div>
-      <a name="messages"/>
-      <a id=non_reply_msg href="javascript:void(0)" onclick="leaveMessageForm(-1,'')">留言</a>
-      <div id=leave_a_msg>
-      <form id=leave_msg_form method="post" action="submit_message?blogid=<!-- tmpl_var blogid -->">
-        <table>
-        <input id=input_blogid type="hidden" name="blogid" value=<!-- tmpl_var blogid --> />
-        <tr><td></td><td id="leave_msg_hint"></td></tr>
-        <!-- tmpl_if non-cookie -->
-        <tr>
-          <td>Nickname:</td>
-          <td><input id=input_author type="text" name="author"/></td>
-        </tr>
-        <tr>
-          <td>email:</td>
-          <td><input id="input_email" type="text" name="email"/></td>
-        </tr>
-        <tr>
-          <td>password:</td>
-          <td><input id=input_psw type="password" name="password"/></td>
-        </tr>
-        <!-- tmpl_else -->
-        <tr>
-          <td>Nickname:</td>
-          <td><!-- tmpl_var author --></td>
-        </tr>
-        <!-- /tmpl_if -->
-        <tr>
-          <td>Content:</td>
-          <!-- tmpl_if is-reply -->
-            <input id=input_rpmsg type="hidden" name="rpmsg" value="<!-- tmpl_var replied-msgid -->"/>
-          <!-- /tmpl_if -->
-          <td><textarea id=msg_content name="content"><!-- tmpl_if is-reply -->回复<!-- tmpl_var replied-author -->: <!-- /tmpl_if --></textarea></td>
-        </tr>
-        </table>
-        <input type="button" value="提交" onclick="ajaxSubmitMessage();"/>
-        <input type="button" value="收起回复" onclick="$('#leave_a_msg').slideUp();"/>
-      </form>
-      </div>
-    <a class=insert_msg_pos id=new name="message_new"></a>
-    <!-- tmpl_var recursive-messages -->
-    </div>
+    <!-- tmpl_var blog-msginfo -->
   </div>
 </body>
 </html>

@@ -1,0 +1,39 @@
+    <div>
+      <a name="messages"/>
+      <a id=non_reply_msg href="javascript:void(0)" onclick="leaveMessageForm(-1,'')">留言</a>
+      <div id=leave_a_msg>
+      <form id=leave_msg_form method="post" action="submit_message?blogid=<!-- tmpl_var blogid -->">
+        <table>
+        <input id=input_blogid type="hidden" name="blogid" value=<!-- tmpl_var blogid --> />
+        <tr><td></td><td id="leave_msg_hint"></td></tr>
+        <!-- tmpl_if non-cookie -->
+        <tr>
+          <td>Nickname:</td>
+          <td><input id=input_author type="text" name="author"/></td>
+        </tr>
+        <tr>
+          <td>email:</td>
+          <td><input id="input_email" type="text" name="email"/></td>
+        </tr>
+        <tr>
+          <td>password:</td>
+          <td><input id=input_psw type="password" name="password"/></td>
+        </tr>
+        <!-- tmpl_else -->
+        <tr>
+          <td>Nickname:</td>
+          <td><!-- tmpl_var author --></td>
+        </tr>
+        <!-- /tmpl_if -->
+        <tr>
+          <td>Content:</td>
+          <td><textarea id=msg_content name="content"></textarea></td>
+        </tr>
+        </table>
+        <input type="button" value="提交" onclick="ajaxSubmitMessage();"/>
+        <input type="button" value="收起回复" onclick="$('#leave_a_msg').slideUp();"/>
+      </form>
+      </div>
+    <a class=insert_msg_pos id=new name="message_new"></a>
+    <!-- tmpl_var recursive-messages -->
+    </div>

@@ -1,0 +1,15 @@
+    <h1><!-- tmpl_var title --></h1>
+    <div>
+      <div>Created on <!-- tmpl_var timestamp --></div>
+      <div>Tags:<!-- tmpl_var tags --></div>
+      <div>Read times: <!-- tmpl_var visitor-count -->, Comments: <!-- tmpl_var msg-num --></div>
+      <div class=content>
+        <!-- tmpl_var body -->
+      </div>
+      <!-- tmpl_if prev-blogid -->
+        <li><a href="javascript:void(0)" onclick="ajaxFetchBlog(<!-- tmpl_var prev-blogid -->)">上一篇: <!-- tmpl_var prev-blog-title --></a></li>
+      <!-- /tmpl_if -->
+      <!-- tmpl_if next-blogid -->
+        <li><a href="javascript:void(0)" onclick="ajaxFetchBlog(<!-- tmpl_var next-blogid -->)">下一篇: <!-- tmpl_var next-blog-title --></a></li>
+      <!-- /tmpl_if -->
+    </div>
