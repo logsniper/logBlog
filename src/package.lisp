@@ -1,5 +1,5 @@
 (defpackage :logsniper.logBlog
-    (:use :common-lisp))
+    (:use :common-lisp :sb-thread))
 
 (in-package :logsniper.logBlog)
 (require :hunchentoot)

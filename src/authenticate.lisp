@@ -32,7 +32,7 @@
                              (password userinfo))))
 
 (defun get-cookie-user-info ()
-  (let* ((token (hunchentoot:cookie-in "token"))
+  (let* ((token (hunchentoot:cookie-in "__token"))
          (userinfo (query-userinfo-by-token token)))
         (if (and userinfo (< (get-universal-time) (token-expire userinfo)))
           (progn
@@ -53,7 +53,7 @@
 (defun update-user-info-cookie (userinfo)
   (setf (token userinfo) (generate-token userinfo))
   (setf (token-expire userinfo) (+ (get-universal-time) *cookie-effective-period*))
-  (let ((token-kv (hunchentoot:set-cookie "token" :value (token userinfo))))
+  (let ((token-kv (hunchentoot:set-cookie "__token" :value (token userinfo))))
     (hunchentoot:set-cookie* token-kv)))
 
 (defun add-user (email author password)
@@ -67,7 +67,7 @@
   (let* ((email (hunchentoot:post-parameter "email"))
          (author (hunchentoot:post-parameter "author"))
          (password (hunchentoot:post-parameter "password"))
-         (token (hunchentoot:cookie-in "token"))
+         (token (hunchentoot:cookie-in "__token"))
          (userinfo-e (query-userinfo-by-email email))
          (userinfo-t (query-userinfo-by-token token)))
     (if userinfo-t
@@ -94,11 +94,14 @@
   (if userinfo
     (setf (token userinfo) nil)))
 
+(defparameter *pv-counter-mutex* (sb-thread:make-mutex))
+
 (defmacro with-cookie-user ((userinfo) &body body)
   `(let ((,userinfo (get-cookie-user-info)))
-     (incf (pageview-count (get-items-counter)))
-     (if (= (mod (pageview-count (get-items-counter)) *db-connection-refresh-frequency*) 0)
-        (refresh-database-connection))
+     (sb-thread:with-mutex (*pv-counter-mutex*) 
+       (let ((pv (incf (pageview-count (get-items-counter)))))
+         (if (= (logand pv *db-connection-refresh-frequency*) 0)
+           (refresh-database-connection))))
      (if ,userinfo (log-info "[user-info]uri:~a,author:~a,email:~a,lastip:~a" (hunchentoot:request-uri*) (author ,userinfo) (email ,userinfo) (last-ip ,userinfo)))
      ,@body))
 

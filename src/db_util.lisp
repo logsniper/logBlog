@@ -40,10 +40,16 @@
 (defun add-visitor-count (blog)
   (if blog (incf (visitor-count blog))))
 
+(defparameter *msg-count-mutex* (sb-thread:make-mutex))
+
+(defun get-msg-id ()
+  (sb-thread:with-mutex (*msg-count-mutex*)
+    (incf (msg-count (get-items-counter)))))
+
 (defun add-message (content ip-addr owner-blogid)
   (let ((userinfo (update-user-info)))
     (if (and userinfo (none-of-them-is-empty content ip-addr owner-blogid))
-      (let ((new-msg (make-instance 'message-post :msgid (incf (msg-count (get-items-counter))) 
+      (let ((new-msg (make-instance 'message-post :msgid (get-msg-id)
                                                   :author (author userinfo)
                                                   :email (email userinfo)
                                                   :content content :ip-addr ip-addr
