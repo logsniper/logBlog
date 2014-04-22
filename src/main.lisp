@@ -9,13 +9,16 @@
 (load "./src/ajax_process.lisp")
 (load "./src/hunchentoot_extension.lisp")
 
+(load "./quux_hunchentoot/pkgdcl.lisp")
+(load "./quux_hunchentoot/thread-pooling.lisp")
+
 (in-package :logsniper.logBlog)
 
+(defparameter taskmaster (make-instance 'quux-hunchentoot:thread-pooling-taskmaster 
+                                        :max-thread-count *max-thread-count* :max-accept-count *max-accept-count*))
 (defparameter acceptor (make-instance 'hunchentoot:easy-acceptor 
-                                      :port 8080
-                                      :taskmaster (make-instance 'hunchentoot:one-thread-per-connection-taskmaster
-                                                                 :max-thread-count *max-thread-count*
-                                                                 :max-accept-count *max-accept-count*)))
+                                      :port 8080 :taskmaster taskmaster))
+
 (setf (hunchentoot:acceptor-message-log-destination acceptor) *message-log-path*)
 (setf (hunchentoot:acceptor-access-log-destination acceptor) *access-log-path*)
 (setf hunchentoot:*acceptor* acceptor)
