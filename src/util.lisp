@@ -30,7 +30,7 @@
             ,@body))
 
 (defun generate-salt ()
-  (random 10000000))
+  (random 10000000 (make-random-state t)))
 
 (defun none-of-them-is-empty (&rest variables)
   (let ((flag t))
@@ -92,3 +92,17 @@
         when (not (equal cur v))
         collect cur))
 
+(defun get-random-string ()
+  (with-output-to-string (stream)
+    (format stream "~a#~a" (random 10000000 (make-random-state t)) (random 10000000 (make-random-state t)))
+    stream))
+
+(defparameter *active-user-hash* (make-hash-table :test 'equal))
+(defparameter *active-user-num* 0)
+(defparameter *active-user-hash-mutex* (sb-thread:make-mutex :name "active-user-hash-mutex"))
+;(defparameter *pv-counter-mutex* (sb-thread:make-mutex))
+
+(defun update-active-user (key &optional (replace-key nil))
+  (sb-thread:with-mutex (*active-user-hash-mutex*)
+    (if replace-key (remhash replace-key *active-user-hash*))
+    (setf (gethash key *active-user-hash*) (get-universal-time))))

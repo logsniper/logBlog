@@ -19,3 +19,7 @@
 (defparameter *message-log-path* #P"./log/message.log")
 
 (defparameter *db-connection-refresh-frequency* 63)
+
+(defparameter *max-thread-count* 20)
+
+(defparameter *max-accept-count* 100)

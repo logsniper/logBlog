@@ -197,4 +197,4 @@ div.sidebar_title {
     float:middle;
 }
 
-div#unread_num,div.countdown3 {display: inline;}
+div#unread_num,div.countdown3,div#active_user_num {display: inline;}

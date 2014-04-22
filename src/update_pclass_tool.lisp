@@ -5,4 +5,5 @@
     `(loop for elem in (get-instances-by-class ',pclass-name)
            do (,slot-name elem))))
 
-(add-slot-to-pclass (new-reply userinfo))
+(with-open-store (*store-spec*)
+  (add-slot-to-pclass (new-reply userinfo)))

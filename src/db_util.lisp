@@ -77,8 +77,9 @@
     nil))
 
 (defun summarise-blog-tags ()
-  (let ((counter (make-hash-table :test #'equal)))
-    (loop for blog in (pset-list *blog-posts*)
+  (let ((counter (make-hash-table :test #'equal))
+        (blog-list (pset-list *blog-posts*)))
+    (loop for blog in blog-list
           when (published blog)
           do (loop for tag in (tags blog)
                    do (if (gethash tag counter)
@@ -90,7 +91,7 @@
 
 (defun refresh-database-connection ()
   (close-store)
-  (open-store *store-spec*)
+  (open-store *store-spec* :thread t)
   (log-warning "refreshed db connection, pv count:~a" (pageview-count (get-items-counter))))
 
 (defun get-prev-next-blogid (blogid)

@@ -51,6 +51,7 @@
     (html-template:fill-and-print-template
       #P"./sidebar.tmpl"
       (list :host *host-address*
+            :active-user-num *active-user-num*
             :tags (loop for item in (summarise-blog-tags)
                         collect (list :tag (first item)
                                       :count (second item)))

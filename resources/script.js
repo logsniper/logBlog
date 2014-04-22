@@ -311,6 +311,9 @@ $(document).ready(function () {
                         }
                     });
                 }
+                if (json.active_user_num != undefined) {
+                    $("#active_user_num").text(json.active_user_num);
+                }
             }
         });
     };

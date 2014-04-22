@@ -54,6 +54,6 @@
         (if userinfo (setf unread_num (length (new-reply userinfo))))
         (if (not (equal latest_msg_id (msgid (car (get-all-messages)))))
             (setf has_new_msg 1))
-        (format stream "{\"unread_num\": ~a, \"has_new_msg\": ~a}" unread_num has_new_msg)
+        (format stream "{\"unread_num\": ~a, \"has_new_msg\": ~a, \"active_user_num\": ~a}" unread_num has_new_msg *active-user-num*)
         stream))))
 

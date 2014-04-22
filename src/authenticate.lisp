@@ -94,15 +94,20 @@
   (if userinfo
     (setf (token userinfo) nil)))
 
-(defparameter *pv-counter-mutex* (sb-thread:make-mutex))
-
 (defmacro with-cookie-user ((userinfo) &body body)
   `(let ((,userinfo (get-cookie-user-info)))
-     (sb-thread:with-mutex (*pv-counter-mutex*) 
-       (let ((pv (incf (pageview-count (get-items-counter)))))
-         (if (= (logand pv *db-connection-refresh-frequency*) 0)
-           (refresh-database-connection))))
-     (if ,userinfo (log-info "[user-info]uri:~a,author:~a,email:~a,lastip:~a" (hunchentoot:request-uri*) (author ,userinfo) (email ,userinfo) (last-ip ,userinfo)))
+     (incf (pageview-count (get-items-counter)))
+     ;(sb-thread:with-mutex (*pv-counter-mutex*) 
+     ;  (let ((pv (incf (pageview-count (get-items-counter)))))
+     ;    (if (= (logand pv *db-connection-refresh-frequency*) 0)
+     ;      (refresh-database-connection))))
+     (incf (pageview-count (get-items-counter)))
+     (if ,userinfo
+       (update-active-user (email ,userinfo) (hunchentoot:cookie-in "unreg"))
+       (let ((unreg (hunchentoot:cookie-in "unreg")))
+         (if (not (none-of-them-is-empty unreg)) (setf unreg (get-random-string)))
+         (update-active-user unreg)
+         (hunchentoot:set-cookie "unreg" :value unreg)))
      ,@body))
 
 (with-open-store (*store-spec*)

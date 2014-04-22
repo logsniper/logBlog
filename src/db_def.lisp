@@ -3,7 +3,7 @@
 
 ; Open the store where our data is stored
 (defparameter *store-spec* '(:clsql (:sqlite3 "./database/blog.db")))
-(open-store *store-spec*)
+(open-store *store-spec* :recover t :recover-fatal t :thread t)
 
 (defclass blog-paragraph ()
            ((content :initarg :content
@@ -81,7 +81,8 @@
                    :accessor email
                    :index t)
             (author :initarg :author
-                  :accessor author)
+                  :accessor author
+                  :index t)
             (salt :initarg :salt
                   :accessor salt
                   :initform (generate-salt))
