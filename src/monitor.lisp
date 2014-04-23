@@ -1,7 +1,7 @@
 (in-package :logsniper.logBlog)
 
 (defmacro log-monitor (format-string &rest format-arguments)
-  `(with-open-file (stream #P"./log/monitor.log" :direction :output :if-exists :append)
+  `(with-open-file (stream #P"./log/monitor.log" :direction :output :if-exists :append :if-does-not-exist :create)
     (format stream (concatenate 'string "[~a]" ,format-string "~%") (timestamp-to-string (get-universal-time)) ,@format-arguments)))
 
 (defun refresh-user-hash ()
@@ -26,12 +26,17 @@
         do (with-output-to-string (stream)
                (format stream "~a" thread)
                (let ((str (get-output-stream-string stream)))
-                 (if (and (search "hunchentoot-worker" str)
-                          (search "waiting on" str))
+                 (if (or
+                       (and (search "hunchentoot-worker-" str)
+                            (search "waiting on" str))
+                       (and (search "quux-hunchentoot-thread-pool-" str)
+                            (search "waiting on" str)
+                            (not (search "Anonymous condition variable" str))))
                    (progn (log-monitor "terminating thread:~a" thread)
                           (sb-thread:terminate-thread thread)))))))
 
 (defun monitor-thread-function ()
+  (sleep 10)
   (loop
     (refresh-user-hash)
     (terminate-zombie-thread)

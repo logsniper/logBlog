@@ -8,6 +8,10 @@
   (if tok
     (find-item tok *user-pset* :key #'token :test #'equal)))
 
+(defun query-userinfo-by-author (author)
+  (if author
+    (find-item author *user-pset* :key #'author :test #'equal)))
+
 (defun generate-token (userinfo)
   (if userinfo
     (let ((string (make-array '(0) :element-type 'base-char :fill-pointer 0 :adjustable t)))
@@ -57,11 +61,19 @@
     (hunchentoot:set-cookie* token-kv)))
 
 (defun add-user (email author password)
-  (if (and (none-of-them-is-empty email author password) (not (query-userinfo-by-email email)))
-    (let ((salt (generate-salt)))
-      (insert-item (make-instance 'userinfo :userid (incf (user-count (get-items-counter))) :author author :email email
-                                            :salt salt :password (md5sum (combine-password-salt password salt))) 
-                   *user-pset*))))
+  (let ((info-complete-p (none-of-them-is-empty email author password))
+        (email-exist-p (query-userinfo-by-email email))
+        (author-exist-p (query-userinfo-by-author author))
+        (hintid 1))
+    (if (and info-complete-p (not email-exist-p) (not author-exist-p))
+      (let ((salt (generate-salt)))
+        (insert-item (make-instance 'userinfo :userid (incf (user-count (get-items-counter))) :author author :email email
+                                              :salt salt :password (md5sum (combine-password-salt password salt))) 
+                     *user-pset*))
+      (if info-complete-p (setf hintid 3)
+        (if email-exist-p (setf hintid 2)
+          (if author-exist-p (setf hintid 4)))))
+    hintid))
 
 (defun update-user-info ()
   (let* ((email (hunchentoot:post-parameter "email"))
@@ -77,13 +89,12 @@
         ; if fail to check token but email&password combination is ok, it is also valid and the cookie should be updated
         (if (check-authentication userinfo-e password)
           (progn
-            (update-user-info-db userinfo-e :author author)
+            (update-user-info-db userinfo-e)
             (update-user-info-cookie userinfo-e)
             userinfo-e))
         ; if both token and email&password combination is invalid, but none of post items is empty, new user will be created
-        (if (none-of-them-is-empty email author password)
-          (progn
-            (add-user email author password)
+        (let ((hintid (add-user email author password)))
+          (if (= 1 hintid) ; successfully create new user
             (let ((userinfo-e (query-userinfo-by-email email)))
               (if userinfo-e
                 (progn 
@@ -92,7 +103,8 @@
 
 (defun logout (userinfo)
   (if userinfo
-    (setf (token userinfo) nil)))
+    (setf (token userinfo) nil)
+    (log-warning "failed to logout.")))
 
 (defmacro with-cookie-user ((userinfo) &body body)
   `(let ((,userinfo (get-cookie-user-info)))
@@ -101,7 +113,6 @@
      ;  (let ((pv (incf (pageview-count (get-items-counter)))))
      ;    (if (= (logand pv *db-connection-refresh-frequency*) 0)
      ;      (refresh-database-connection))))
-     (incf (pageview-count (get-items-counter)))
      (if ,userinfo
        (update-active-user (email ,userinfo) (hunchentoot:cookie-in "unreg"))
        (let ((unreg (hunchentoot:cookie-in "unreg")))

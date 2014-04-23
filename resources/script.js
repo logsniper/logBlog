@@ -114,8 +114,10 @@ function ajaxLogin(e) {
                     $("#login_form").hide();
                     hintinfo = "登陆成功, <div class=countdown3>3</div>秒后即将跳转到前一页面";
                     jump = true;
-                } else {
-                    hintinfo = "用户名、密码错误";
+                } else if (json.status == "12") {
+                    hintinfo = "邮箱、密码错误";
+                } else if (json.status == "13") {
+                    hintinfo = "您的邮箱未注册"
                 }
             } else {
                 hintinfo = "由于内部原因登录失败";
@@ -263,6 +265,40 @@ function ajaxFetchBlog(blogid) {
 }
 
 $(document).ready(function() {
+    $(".register#input_author").blur(function(){
+        if ($(this).val() == "") {
+            $("#input_author_hint").text("昵称不能为空.");
+        } else {
+            var dataPost = {"author": $(this).val()}
+            $.post("check_author", dataPost, function (responseData, stat) {
+                if (stat == "success") {
+                    var json = JSON.parse(responseData);
+                    var hintinfo = "";
+                    if (json.exist == 1) {
+                        hintinfo = "该昵称已存在.";
+                    }
+                    $("#input_author_hint").text(hintinfo);
+                }
+            });
+        }
+    });
+    $(".register#input_email").blur(function(){
+        if ($(this).val() == "") {
+            $("#input_email_hint").text("邮箱不能为空.");
+        } else {
+            var dataPost = {"email": $(this).val()}
+            $.post("check_email", dataPost, function (responseData, stat) {
+                if (stat == "success") {
+                    var json = JSON.parse(responseData);
+                    var hintinfo = "";
+                    if (json.exist == 1) {
+                        hintinfo = "该邮箱已注册.";
+                    }
+                    $("#input_email_hint").text(hintinfo);
+                }
+            });
+        }
+    });
     $("#register_submit").click(function(e) {
         e.preventDefault();
         if ($("#input_email").val() == undefined || validateEmail($("#input_email").val())) {

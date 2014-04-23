@@ -9,7 +9,7 @@
         (if (check-authentication userinfo password)
           (progn (update-user-info-cookie userinfo)
                  (format stream "{\"status\":\"11\"}"))
-          (format stream "{\"status\":\"12\"}")))
+          (format stream "{\"status\":\"~a\"}" (if userinfo 12 13))))
       stream)))
 
 (defun cancel-unread-message ()
@@ -57,3 +57,12 @@
         (format stream "{\"unread_num\": ~a, \"has_new_msg\": ~a, \"active_user_num\": ~a}" unread_num has_new_msg *active-user-num*)
         stream))))
 
+(defun check-email-p ()
+  (with-output-to-string (stream)
+    (let ((email (hunchentoot:post-parameter "email")))
+      (format stream "{\"exist\": ~a}" (if (query-userinfo-by-email email) 1 0)))))
+
+(defun check-author-p ()
+  (with-output-to-string (stream)
+    (let ((author (hunchentoot:post-parameter "author")))
+      (format stream "{\"exist\": ~a}" (if (query-userinfo-by-author author) 1 0)))))

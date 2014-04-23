@@ -14,10 +14,17 @@
 
 (in-package :logsniper.logBlog)
 
-(defparameter taskmaster (make-instance 'quux-hunchentoot:thread-pooling-taskmaster 
+(defparameter multi-thread-taskmaster (make-instance 
+                                        'quux-hunchentoot:thread-pooling-taskmaster 
+                                        ;'hunchentoot:one-thread-per-connection-taskmaster
                                         :max-thread-count *max-thread-count* :max-accept-count *max-accept-count*))
+
+(defparameter single-thread-taskmaster (make-instance 'hunchentoot:single-threaded-taskmaster))
+
 (defparameter acceptor (make-instance 'hunchentoot:easy-acceptor 
-                                      :port 8080 :taskmaster taskmaster))
+                                      :port 8080 :taskmaster (if *single-thread-taskmaster*
+                                                               single-thread-taskmaster
+                                                               multi-thread-taskmaster)))
 
 (setf (hunchentoot:acceptor-message-log-destination acceptor) *message-log-path*)
 (setf (hunchentoot:acceptor-access-log-destination acceptor) *access-log-path*)
@@ -25,6 +32,6 @@
 
 (load "./src/monitor.lisp")
 
-;(open-store *store-spec* :thread t)
+(open-store *store-spec* :thread t)
 ;(load "./src/update_pclass_tool.lisp")
 (hunchentoot:start acceptor)

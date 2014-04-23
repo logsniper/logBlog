@@ -16,4 +16,5 @@
 ; 解决"Error 5 / database is locked"以及数据库断开或打开过多的file description等问题
 (defmethod hunchentoot:handle-request ((acceptor hunchentoot:easy-acceptor) request)
   (with-open-store (*store-spec*)
-    (call-next-method)))
+    ;(with-transaction (:store-controller *store-controller*)
+      (call-next-method)))

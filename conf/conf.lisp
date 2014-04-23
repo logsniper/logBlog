@@ -20,6 +20,8 @@
 
 (defparameter *db-connection-refresh-frequency* 63)
 
-(defparameter *max-thread-count* 20)
+(defparameter *single-thread-taskmaster* nil)
+
+(defparameter *max-thread-count* 8)
 
 (defparameter *max-accept-count* 100)

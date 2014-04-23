@@ -77,8 +77,10 @@
     (1 "Register success.")
     (2 "Register failed. Your Email has already existed.")
     (3 "Register failed. Name/Email/Password cannot be empty.")
+    (4 "Register failed. Your Name has already existed.")
     (11 "Login success.")
     (12 "Login failed. Your Email&Password combination is invalid.")
+    (13 "Login failed. Your Email doesn't exist.")
     (22 "Sorry, this blog cannot be accessed.")
     (31 "Logout success.")
     (-1 "Page not found.")
@@ -128,7 +130,7 @@
       :stream stream)))
 
 (defun generate-blog-list-page ()
-  "Generate the index page on which lists all valid blog posts"
+  ;; Generate the index page on which lists all valid blog posts
   (with-cookie-user (userinfo)
     (let ((need-tag (hunchentoot:get-parameter "tag")))
       (with-output-to-string (stream)
@@ -224,15 +226,15 @@
                     :prev-blog-title (if (>= (first prev-next-pair) 0) (title (get-blog (first prev-next-pair))) nil)
                     :next-blogid (if (>= (second prev-next-pair) 0) (second prev-next-pair) nil)
                     :next-blog-title (if (>= (second prev-next-pair) 0) (title (get-blog (second prev-next-pair))) nil))
-            :stream stream))
-        (generate-hint-response-page))))))
+            :stream stream)))
+        (generate-hint-response-page)))))
 
 (defun generate-blog-msginfo-div ()
   (with-cookie-user (userinfo)
     (let ((blog (get-blog (string-to-int (hunchentoot:get-parameter "blogid"))))
           (force-view (string-to-int (hunchentoot:get-parameter "fv"))))
-      (with-output-to-string (stream)
-        (if (and blog (or (> force-view 0) (published blog)))
+      (if (and blog (or (> force-view 0) (published blog)))
+        (with-output-to-string (stream)
           (html-template:fill-and-print-template
             #P"./blog_msginfo.tmpl"
             (list :blogid (blogid blog)
@@ -358,4 +360,6 @@
         (hunchentoot:create-regex-dispatcher "^/unread_msg$" 'generate-unread-messages)
         (hunchentoot:create-regex-dispatcher "^/cancel_unread$" 'cancel-unread-message)
         (hunchentoot:create-regex-dispatcher "^/mark_all_unread$" 'mark-all-unread-messages)
+        (hunchentoot:create-regex-dispatcher "^/check_email$" 'check-email-p)
+        (hunchentoot:create-regex-dispatcher "^/check_author$" 'check-author-p)
         (hunchentoot:create-prefix-dispatcher "/" 'generate-hint-response-page)))
