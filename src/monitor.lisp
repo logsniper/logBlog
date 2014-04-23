@@ -10,7 +10,10 @@
     (sb-thread:with-mutex (*active-user-hash-mutex*)
       (loop for k being the hash-keys in *active-user-hash* using (hash-value then-time)
               do (if (> (- cur-time then-time) 60) ; no hearbeat for over 1 minute
-                   (remhash k *active-user-hash*)
+                   (progn
+                     (let ((userinfo (query-userinfo-by-email k)))
+                       (if userinfo (setf (last-time userinfo) then-time)))
+                     (remhash k *active-user-hash*))
                    (incf cur-num))))
     (unless (= cur-num *active-user-num*)
       (log-monitor "active-user-num=~a" cur-num))

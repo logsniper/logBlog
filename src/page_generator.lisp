@@ -159,6 +159,8 @@
            (userinfo (query-userinfo-by-email email)))
       (if (check-authentication userinfo password)
         (progn (update-user-info-cookie userinfo)
+               (setf (last-time userinfo) (get-universal-time))
+               (setf (last-ip userinfo) (hunchentoot:real-remote-addr))
                (hunchentoot:redirect "/hint?v=11" :host *host-address* :protocol :http :code 303))
         (hunchentoot:redirect "/hint?v=12" :host *host-address* :protocol :http :code 303)))))
 

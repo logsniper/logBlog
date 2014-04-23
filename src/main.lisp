@@ -32,6 +32,6 @@
 
 (load "./src/monitor.lisp")
 
-(open-store *store-spec* :thread t)
+;(open-store *store-spec* :thread t)
 ;(load "./src/update_pclass_tool.lisp")
 (hunchentoot:start acceptor)

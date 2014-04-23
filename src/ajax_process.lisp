@@ -8,6 +8,8 @@
              (userinfo (query-userinfo-by-email email)))
         (if (check-authentication userinfo password)
           (progn (update-user-info-cookie userinfo)
+                 (setf (last-time userinfo) (get-universal-time))
+                 (setf (last-ip userinfo) (hunchentoot:real-remote-addr))
                  (format stream "{\"status\":\"11\"}"))
           (format stream "{\"status\":\"~a\"}" (if userinfo 12 13))))
       stream)))

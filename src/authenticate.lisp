@@ -39,10 +39,7 @@
   (let* ((token (hunchentoot:cookie-in "__token"))
          (userinfo (query-userinfo-by-token token)))
         (if (and userinfo (< (get-universal-time) (token-expire userinfo)))
-          (progn
-            (setf (last-time userinfo) (get-universal-time))
-            (setf (last-ip userinfo) (hunchentoot:real-remote-addr))
-            userinfo))))
+          userinfo)))
 
 (defun get-post-user-info ()
   (let ((email (hunchentoot:post-parameter "email")))
