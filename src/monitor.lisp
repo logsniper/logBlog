@@ -6,15 +6,20 @@
 
 (defun refresh-user-hash ()
   (let ((cur-time (get-universal-time))
-        (cur-num 0))
+        (cur-num 0)
+        (inactive-user (make-hash-table)))
     (sb-thread:with-mutex (*active-user-hash-mutex*)
       (loop for k being the hash-keys in *active-user-hash* using (hash-value then-time)
               do (if (> (- cur-time then-time) 60) ; no hearbeat for over 1 minute
                    (progn
-                     (let ((userinfo (query-userinfo-by-email k)))
-                       (if userinfo (setf (last-time userinfo) then-time)))
+                     (setf (gethash k inactive-user) then-time)
                      (remhash k *active-user-hash*))
                    (incf cur-num))))
+    (with-open-store (*store-spec*)
+      (loop for k being the hash-keys in inactive-user using (hash-value then-time)
+            do (let ((userinfo (query-userinfo-by-email k)))
+                 (log-monitor "inactive-user:~a, last active time:~a" k (timestamp-to-string then-time))
+                 (if userinfo (setf (last-time userinfo) then-time)))))
     (unless (= cur-num *active-user-num*)
       (log-monitor "active-user-num=~a" cur-num))
     (setf *active-user-num* cur-num)))
@@ -44,9 +49,3 @@
     (refresh-user-hash)
     (terminate-zombie-thread)
     (sleep 60)))
-
-(defparameter *monitor-thread* (make-instance 'sb-thread:thread))
-
-(if (sb-thread:thread-alive-p *monitor-thread*)
-  (sb-thread:terminate-thread *monitor-thread*))
-(setf *monitor-thread* (sb-thread:make-thread 'monitor-thread-function :name "monitor"))
