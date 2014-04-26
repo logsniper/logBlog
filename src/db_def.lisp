@@ -2,8 +2,9 @@
 (use-package :elephant)
 
 ; Open the store where our data is stored
-(defparameter *store-spec* '(:clsql (:sqlite3 "./database/blog.db")))
-(open-store *store-spec* :recover t :recover-fatal t :thread t)
+;(defparameter *store-spec* '(:clsql (:sqlite3 "./database/blog.db")))
+(defparameter *store-spec* '(:BDB "./database/BerkeleyDB/"))
+(open-store *store-spec*)
 
 (defclass blog-paragraph ()
            ((content :initarg :content

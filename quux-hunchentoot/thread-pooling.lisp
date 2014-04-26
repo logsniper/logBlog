@@ -215,8 +215,12 @@ then the reply will be HTTP 503."))
       (setf dispatcher-process
             (start-thread
              taskmaster
-             (lambda () (run-dispatcher-thread taskmaster))
-             :name (format nil "quux-hunchentoot-dispatcher-~A:~A" address port))))))
+             (lambda ()
+               (dispatcher-recv taskmaster :blockp t) ;; wait for initializations
+               (run-dispatcher-thread taskmaster))
+             :name (format nil "quux-hunchentoot-dispatcher-~A:~A" address port)))
+      (dispatcher-send taskmaster :ready :blockp nil)
+      nil)))
 
 (defmethod handle-incoming-connection ((taskmaster thread-pooling-taskmaster) connection)
   (dispatcher-send taskmaster `(:process-connection ,connection) :blockp nil))
@@ -241,7 +245,7 @@ then the reply will be HTTP 503."))
   ;;    wait until the connection count drops, then handle the request
   ;;  - Otherwise, increment THREAD-COUNT and start a taskmaster
   (with-taskmaster-accessors
-      (master-lock thread-pool pending-connections
+      (thread-pool pending-connections
        dispatcher-channel dispatcher-process
        accept-count max-accept-count
        thread-count max-thread-count) taskmaster

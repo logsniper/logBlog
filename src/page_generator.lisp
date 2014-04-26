@@ -312,7 +312,7 @@
 
 (defun generate-logout-page ()
   (with-cookie-user (userinfo)
-    (logout userinfo)
+    (logout userinfo) ; failure if hunchentoot:handle-request harbours with-transaction
     (hunchentoot:redirect "/hint?v=31" :host *host-address* :protocol :http :code 303)))
 
 (defun generate-unread-messages ()

@@ -83,9 +83,7 @@
           collect (string-trim " " word))))
 
 (defun join-string-with-comma (str-list)
-  (with-output-to-string (stream)
-    (format stream "~{~a~^, ~}" str-list)
-    stream))
+  (format nil "~{~a~^, ~}" str-list))
 
 (defun remove-given-value-from-list (l v)
   (loop for cur in l
@@ -93,9 +91,7 @@
         collect cur))
 
 (defun get-random-string ()
-  (with-output-to-string (stream)
-    (format stream "~a#~a" (random 10000000 (make-random-state t)) (random 10000000 (make-random-state t)))
-    stream))
+  (format nil "~a#~a" (random 10000000 (make-random-state t)) (random 10000000 (make-random-state t))))
 
 (defparameter *active-user-hash* (make-hash-table :test 'equal))
 (defparameter *active-user-num* 0)

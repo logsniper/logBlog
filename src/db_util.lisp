@@ -40,7 +40,7 @@
 (defun add-visitor-count (blog)
   (if blog (incf (visitor-count blog))))
 
-(defparameter *msg-count-mutex* (sb-thread:make-mutex))
+(defparameter *msg-count-mutex* (sb-thread:make-mutex :name "msg-count-mutex"))
 
 (defun get-msg-id ()
   (sb-thread:with-mutex (*msg-count-mutex*)
@@ -105,3 +105,18 @@
                  (setf res-next cur-blogid))
                (setf prev cur-blogid)))
     (list res-prev res-next)))
+
+(defun output-all-blog-to-text (filename)
+  (with-open-file (stream filename :direction :output :if-exists :append :if-does-not-exist :create)
+    (let ((blog-list (pset-list *blog-posts*)))
+      (loop for blog in blog-list
+            do (progn
+                 (format stream "-------------------------------------~%")
+                 (format stream "id: ~a~%" (blogid blog))
+                 (format stream "title: ~a~%" (title blog))
+                 (format stream "tags: ~a~%" (join-string-with-comma (tags blog)))
+                 (format stream "timestamp: ~a~%" (timestamp blog))
+                 (loop for para in (body blog)
+                       for i from 0 to *max-paragraph-num*
+                       do (format stream "No.~a [type:~a] ~a~%" i (para-type para) (content para))))))))
+

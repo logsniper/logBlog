@@ -353,7 +353,7 @@ $(document).ready(function () {
             }
         });
     };
-    setInterval(check_update, 15000);
+    setInterval(check_update, 1000);
 });
 
 /* highlight given message */

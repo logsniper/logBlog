@@ -26,10 +26,7 @@
     "none"))
 
 (defun combine-password-salt (psw slt)
-  (if psw
-    (with-output-to-string (stream)
-      (format stream "~a~a" psw slt)
-      stream)))
+  (if psw (format nil "~a~a" psw slt)))
 
 (defun check-authentication (userinfo password)
   (and userinfo (string= (md5sum (combine-password-salt password (salt userinfo)))

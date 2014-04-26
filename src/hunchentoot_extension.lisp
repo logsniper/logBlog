@@ -1,5 +1,4 @@
 (in-package :logsniper.logBlog)
-
 #|
 (defmethod hunchentoot:initialize-connection-stream ((acceptor hunchentoot:easy-acceptor) stream)
   (log-info "initialize-connection-stream:~a" sb-thread:*current-thread*)
@@ -11,10 +10,8 @@
   (close-store)
   (open-store *store-spec*)
   stream)
-|#
-
-; 解决"Error 5 / database is locked"以及数据库断开或打开过多的file description等问题
 (defmethod hunchentoot:handle-request ((acceptor hunchentoot:easy-acceptor) request)
-  (with-open-store (*store-spec*)
-    ;(with-transaction (:store-controller *store-controller*)
-      (call-next-method)))
+  (with-open-store (*store-spec*) ;; "with-open-store" will lead to opening too many unused controller.
+    (with-transaction (:store-controller *store-controller*) ;; "with-transaction" wiil make the logout fail.
+      (call-next-method))))
+||#

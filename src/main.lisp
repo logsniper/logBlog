@@ -10,8 +10,8 @@
 (load "./src/hunchentoot_extension.lisp")
 (load "./src/monitor.lisp")
 
-(load "./quux_hunchentoot/pkgdcl.lisp")
-(load "./quux_hunchentoot/thread-pooling.lisp")
+(load "./quux-hunchentoot/pkgdcl.lisp")
+(load "./quux-hunchentoot/thread-pooling.lisp")
 
 (in-package :logsniper.logBlog)
 
@@ -31,11 +31,15 @@
 (setf (hunchentoot:acceptor-access-log-destination acceptor) *access-log-path*)
 (setf hunchentoot:*acceptor* acceptor)
 
+;(load "./src/update_pclass_tool.lisp")
+
+;;; WARNING: After reading the source code of elephant,
+;;; I know that if the macro "with-open-store" is not used,
+;;; the system will handle controllers correctly.
+(open-store *store-spec*)
 
 (defvar *monitor-thread*)
 (unless (and (boundp '*monitor-thread*) *monitor-thread* (sb-thread:thread-alive-p *monitor-thread*))
   (setf *monitor-thread* (sb-thread:make-thread 'monitor-thread-function :name "monitor")))
 
-;(open-store *store-spec* :thread t)
-;(load "./src/update_pclass_tool.lisp")
 (hunchentoot:start acceptor)
