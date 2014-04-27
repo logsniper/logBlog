@@ -9,12 +9,17 @@
         (cur-num 0)
         (inactive-user (make-hash-table)))
     (sb-thread:with-mutex (*active-user-hash-mutex*)
-      (loop for k being the hash-keys in *active-user-hash* using (hash-value then-time)
-              do (if (> (- cur-time then-time) 60) ; no hearbeat for over 1 minute
+      (loop for k being the hash-keys in *active-user-hash* using (hash-value user-status)
+              do (if (> (- cur-time (last-time user-status)) 60) ; no hearbeat for over 1 minute
                    (progn
-                     (setf (gethash k inactive-user) then-time)
+                     (setf (gethash k inactive-user) (last-time user-status))
                      (remhash k *active-user-hash*))
-                   (incf cur-num))))
+                   (progn
+                     (incf cur-num)
+                     (if (> (request-in-this-minute user-status) *max-request-per-user-per-minute*)
+                       (log-monitor "too many request last minute.[user:~a] [reqnum:~a]"
+                                    k (request-in-this-minute user-status)))
+                     (setf (request-in-this-minute user-status) 0)))))
     (loop for k being the hash-keys in inactive-user using (hash-value then-time)
           do (let ((userinfo (query-userinfo-by-email k)))
                (log-monitor "inactive-user:~a, last active time:~a" k (timestamp-to-string then-time))
@@ -25,8 +30,8 @@
 
 (defun output-active-user ()
   (sb-thread:with-mutex (*active-user-hash-mutex*)
-    (loop for k being the hash-keys in *active-user-hash* using (hash-value then-time)
-          do (log-monitor "active-user:~a" k))))
+    (loop for k being the hash-keys in *active-user-hash* using (hash-value user-status)
+          do (log-monitor "active-user:~a, request-in-this-minute:~a" k (request-in-this-minute user-status)))))
 
 (defun terminate-zombie-thread ()
   (loop for thread in (sb-thread:list-all-threads)
@@ -46,5 +51,5 @@
   (sleep 10)
   (loop
     (refresh-user-hash)
-    (terminate-zombie-thread)
+    ;(terminate-zombie-thread) ;; not necessary
     (sleep 60)))

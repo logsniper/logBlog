@@ -93,12 +93,26 @@
 (defun get-random-string ()
   (format nil "~a#~a" (random 10000000 (make-random-state t)) (random 10000000 (make-random-state t))))
 
+(defmacro aif (test-form then-form &optional else-form)
+  `(let ((it ,test-form))
+     (if it ,then-form ,else-form)))
+
 (defparameter *active-user-hash* (make-hash-table :test 'equal))
 (defparameter *active-user-num* 0)
 (defparameter *active-user-hash-mutex* (sb-thread:make-mutex :name "active-user-hash-mutex"))
-;(defparameter *pv-counter-mutex* (sb-thread:make-mutex))
 
-(defun update-active-user (key &optional (replace-key nil))
+(defclass user-status ()
+  ((last-time :initform (get-universal-time)
+              :accessor last-time)
+   (request-in-this-minute :initform 1
+                           :accessor request-in-this-minute)))
+
+(defun update-active-user (key &key (replaced-key nil))
   (sb-thread:with-mutex (*active-user-hash-mutex*)
-    (if replace-key (remhash replace-key *active-user-hash*))
-    (setf (gethash key *active-user-hash*) (get-universal-time))))
+    (if replaced-key (remhash replaced-key *active-user-hash*))
+    (aif (gethash key *active-user-hash*)
+         (progn
+           (setf (last-time it) (get-universal-time))
+           (incf (request-in-this-minute it))
+           it)
+         (setf (gethash key *active-user-hash*) (make-instance 'user-status)))))

@@ -4,7 +4,8 @@ body {
     background: url(images/background.png);
     color: black;
     font-family: Monospace;
-    background-repeat: repeat;
+    background-repeat: no-repeat;
+    background-size: 100%;
     background-attachment:fixed;
     word-break: break-all;
 }

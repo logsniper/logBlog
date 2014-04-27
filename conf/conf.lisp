@@ -25,3 +25,5 @@
 (defparameter *max-thread-count* 8)
 
 (defparameter *max-accept-count* 100)
+
+(defparameter *max-request-per-user-per-minute* 30)

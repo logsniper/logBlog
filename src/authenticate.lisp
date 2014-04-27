@@ -101,19 +101,26 @@
     (log-warning "failed to logout.")))
 
 (defmacro with-cookie-user ((userinfo) &body body)
-  `(let ((,userinfo (get-cookie-user-info)))
+  `(let ((,userinfo (get-cookie-user-info))
+         (user-key nil)
+         (replaced-key nil)
+         (block-it nil))
      (incf (pageview-count (get-items-counter)))
-     ;(sb-thread:with-mutex (*pv-counter-mutex*) 
-     ;  (let ((pv (incf (pageview-count (get-items-counter)))))
-     ;    (if (= (logand pv *db-connection-refresh-frequency*) 0)
-     ;      (refresh-database-connection))))
      (if ,userinfo
-       (update-active-user (email ,userinfo) (hunchentoot:cookie-in "unreg"))
+       (progn
+         (setf user-key (email ,userinfo))
+         (setf replaced-key (hunchentoot:cookie-in "unreg")))
        (let ((unreg (hunchentoot:cookie-in "unreg")))
          (if (not (none-of-them-is-empty unreg)) (setf unreg (get-random-string)))
-         (update-active-user unreg)
+         (setf user-key unreg)
          (hunchentoot:set-cookie "unreg" :value unreg)))
-     ,@body))
+     (let ((user-status (update-active-user user-key :replaced-key replaced-key)))
+       ;; Update user status. If current user has sent too many requests, then block it.
+       (sb-thread:with-mutex (*active-user-hash-mutex*)
+         (if (and user-status (> (request-in-this-minute user-status) *max-request-per-user-per-minute*))
+           (setf block-it t))))
+     (unless block-it
+       ,@body)))
 
 (with-open-store (*store-spec*)
   (let ((user (query-userinfo-by-email "logsniper@outlook.com")))
