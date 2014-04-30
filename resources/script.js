@@ -369,6 +369,29 @@ $(document).ready(function () {
     countDown(".countdown3", 3, jumpBack);
 });
 
+$(document).ready(function () {
+    function mouseEnterMenuLayer1Closure (type) {
+        return function () {
+            $(".menu_layer_2").hide();
+            $(".menu_layer_2#" + type).slideDown();
+        }
+    }
+    $(".menu_layer_1 #by_tag").hover(mouseEnterMenuLayer1Closure("by_tag"), function () {});
+    $(".menu_layer_1 #by_month").hover(mouseEnterMenuLayer1Closure("by_month"), function () {});
+    $("#menu_button").click(function () {
+        var menuLayer1 = $(".menu_layer_1");
+        var expanded = parseInt(menuLayer1.attr("expanded"));
+        if (expanded > 0) {
+            $(".menu_layer_2").hide();
+            menuLayer1.slideUp("fast");
+            menuLayer1.attr("expanded", 0);
+        } else {
+            menuLayer1.slideDown("fast");
+            menuLayer1.attr("expanded", 1);
+        }
+    });
+});
+
 /* Google Analytics begin */
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

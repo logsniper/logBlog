@@ -1,6 +1,6 @@
   <div id=navigator><ul>
-    <li style="width:160px">LOGSNIPER的博客</li>
-    <a href="index"><li class=nav_button>Blog list</li></a>
+    <a href="/"><li style="width:160px" class=nav_button>LOGSNIPER的博客</li></a>
+    <a href="javascript:void(0);"><li class=nav_button id=menu_button>Archiver</li></a>
     <a href="/about"><li class=nav_button>about me</li></a>
     <li style="float:right;text-align:right;width:300px;">
     <!-- tmpl_if username -->Welcome, <!-- tmpl_var username -->. <a href="logout">注销</a>?
@@ -10,4 +10,18 @@
   </ul></div>
   <div id=unread_hint>
     您有<a href="unread_msg"><div id=unread_num><!-- tmpl_var unread_num --></div>条未读回复</a>.
+  </div>
+  <div class=menu_layer_1 expanded=0>
+    <li class=nav_button id=by_tag>按分类</li>
+    <li class=nav_button id=by_month>按日期</li>
+  </div>
+  <div class=menu_layer_2 id=by_tag>
+    <!-- tmpl_loop tags-list -->
+    <a href="/index?tag=<!-- tmpl_var key -->"><li class=nav_button><!-- tmpl_var key -->(<!-- tmpl_var count -->)</li></a>
+    <!-- /tmpl_loop -->
+  </div>
+  <div class=menu_layer_2 id=by_month>
+    <!-- tmpl_loop months-list -->
+    <a href="/index?month=<!-- tmpl_var key -->"><li class=nav_button><!-- tmpl_var key -->(<!-- tmpl_var count -->)</li></a>
+    <!-- /tmpl_loop -->
   </div>

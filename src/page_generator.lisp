@@ -21,16 +21,26 @@
     body))
 
 (defun generate-navigator-page ()
+  (defun collect-list (var-list)
+    (loop for item in var-list
+          collect (list :key (first item)
+                        :count (second item))))
   (with-cookie-user (cookie-userinfo)
     (with-output-to-string (stream)
-      (html-template:fill-and-print-template
-        #P"./navigator.tmpl"
-        (if cookie-userinfo
-          (list :username (author cookie-userinfo)
-                :unread_num (length (new-reply cookie-userinfo)))
-          (list :username nil
-                :unread_num 0))
-      :stream stream))))
+      (let ((tags-list (collect-list *blog-tags-list*))
+            (months-list (collect-list *blog-months-list*)))
+        (html-template:fill-and-print-template
+          #P"./navigator.tmpl"
+          (if cookie-userinfo
+            (list :username (author cookie-userinfo)
+                  :unread_num (length (new-reply cookie-userinfo))
+                  :tags-list tags-list
+                  :months-list months-list)
+            (list :username nil
+                  :unread_num 0
+                  :tags-list tags-list
+                  :months-list months-list))
+        :stream stream)))))
 
 (defun generate-recent-messages ()
   (with-output-to-string (stream)
@@ -132,7 +142,8 @@
 (defun generate-blog-list-page ()
   ;; Generate the index page on which lists all valid blog posts
   (with-cookie-user (userinfo)
-    (let ((need-tag (hunchentoot:get-parameter "tag")))
+    (let ((need-tag (hunchentoot:get-parameter "tag"))
+          (need-month (hunchentoot:get-parameter "month")))
       (with-output-to-string (stream)
         (html-template:fill-and-print-template
           #P"./blog_list.tmpl"
@@ -140,7 +151,8 @@
                 :blog-posts
                 (nreverse
                   (loop for blog-post in (pset-list *blog-posts*)
-                        when (blog-filter-with-tag blog-post need-tag)
+                        when (and (blog-filter-with-tag blog-post need-tag)
+                                  (blog-filter-with-month blog-post need-month))
                         collect (list :host-address *host-address*
                                       :title (title blog-post)
                                       :blogid (blogid blog-post)

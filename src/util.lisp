@@ -13,6 +13,15 @@
       (ignore-unused-var day-of-week dst-p)
       stream)))
 
+(defun timestamp-to-year-month (timestamp)
+  (with-output-to-string (stream)
+    (multiple-value-bind
+        (second minute hour date month year day-of-week dst-p tz)
+        (decode-universal-time timestamp -8)
+      (format stream "~d-~d" year month)
+      (ignore-unused-var day-of-week dst-p date hour minute second tz)
+      stream)))
+
 (defun string-to-int (str)
   (if str
     (handler-case

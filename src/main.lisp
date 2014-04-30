@@ -42,4 +42,7 @@
 (unless (and (boundp '*monitor-thread*) *monitor-thread* (sb-thread:thread-alive-p *monitor-thread*))
   (setf *monitor-thread* (sb-thread:make-thread 'monitor-thread-function :name "monitor")))
 
+;; initiate memory data
+(refresh-blog-tag-month-list)
+
 (hunchentoot:start acceptor)

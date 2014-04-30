@@ -29,14 +29,6 @@
   (let ((blog (get-blog blogid)))
     (if blog blog (get-empty-blog))))
 
-(defun save-blog (blog)
-  (let ((old-blog (get-blog (blogid blog))))
-    (if old-blog
-      (progn
-        (insert-item old-blog *blog-posts-old-version*)
-        (remove-item old-blog *blog-posts*))))
-  (insert-item blog *blog-posts*))
-
 (defun add-visitor-count (blog)
   (if blog (incf (visitor-count blog))))
 
@@ -76,18 +68,35 @@
       t)
     nil))
 
-(defun summarise-blog-tags ()
-  (let ((counter (make-hash-table :test #'equal))
+(defun blog-filter-with-month (blog need-month)
+  ; similar algorithm with blog-filter-with-tag
+  (if (published blog)
+    (or (not need-month) (string= need-month (timestamp-to-year-month (timestamp blog))))
+    nil))
+
+(defun deep-summarise-blog-tags ()
+  (let ((tag-hash (make-hash-table :test #'equal))
         (blog-list (pset-list *blog-posts*)))
     (loop for blog in blog-list
           when (published blog)
           do (loop for tag in (tags blog)
-                   do (if (gethash tag counter)
-                        (incf (gethash tag counter))
-                        (setf (gethash tag counter) 1))))
-    (let ((counter-list (loop for k being the hash-keys in counter using (hash-value v)
-                              collect (list k v))))
-      (sort counter-list #'> :key #'second))))
+                   do (if (gethash tag tag-hash)
+                        (incf (gethash tag tag-hash))
+                        (setf (gethash tag tag-hash) 1))))
+    (loop for k being the hash-keys in tag-hash using (hash-value v)
+          collect (list k v))))
+
+(defun summarise-blog-months ()
+  (let ((month-hash (make-hash-table :test #'equal))
+        (blog-list (pset-list *blog-posts*)))
+    (loop for blog in blog-list
+          when (published blog)
+          do (let ((year-month (timestamp-to-year-month (timestamp blog))))
+               (if (gethash year-month month-hash)
+                 (incf (gethash year-month month-hash))
+                 (setf (gethash year-month month-hash) 1))))
+    (loop for k being the hash-keys in month-hash using (hash-value v)
+          collect (list k v))))
 
 (defun refresh-database-connection ()
   (close-store)
@@ -105,6 +114,25 @@
                  (setf res-next cur-blogid))
                (setf prev cur-blogid)))
     (list res-prev res-next)))
+
+(defparameter *blog-tags-list* (list))
+(defparameter *blog-months-list* (list))
+
+(defun refresh-blog-tag-month-list ()
+  (setf *blog-tags-list* (sort (deep-summarise-blog-tags) #'string< :key #'first))
+  (setf *blog-months-list* (sort (summarise-blog-months) #'string< :key #'first)))
+
+(defun summarise-blog-tags ()
+  (sort *blog-tags-list* #'> :key #'second))
+
+(defun save-blog (blog)
+  (let ((old-blog (get-blog (blogid blog))))
+    (if old-blog
+      (progn
+        (insert-item old-blog *blog-posts-old-version*)
+        (remove-item old-blog *blog-posts*))))
+  (insert-item blog *blog-posts*)
+  (refresh-blog-tag-month-list))
 
 (defun output-all-blog-to-text (filename)
   (with-open-file (stream filename :direction :output :if-exists :append :if-does-not-exist :create)

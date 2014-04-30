@@ -53,7 +53,7 @@ div {
 #navigator {
     top: 0px;
     left: 0px;
-    z-index: 199;
+    z-index: 100;
     border: 0;
     height: 40px;
     width: 100%;
@@ -72,8 +72,8 @@ div {
     padding: 8px 20px;
 }
 
-#navigator a, #navigator a:visited {color:white;}
-#navigator .nav_button:hover {background: lightblue}
+#navigator a, #navigator a:visited, .menu_layer_2 a,.menu_layer_2 a:visited {color:white;}
+.nav_button:hover {background: lightblue}
 
 #unread_hint {
     background:white;
@@ -196,6 +196,42 @@ div.sidebar_title {
     margin-right:20px;
     padding-left: 5px;
     float:middle;
+}
+
+div.menu_layer_1 {
+    top: 40px;
+    left: 200px;
+    z-index: 100;
+    border: 0;
+    width: 200px;
+    position: fixed;
+    background: #4672BF;
+    opacity: 0.8;
+    color: white;
+    list-style: none;
+    display: none;
+}
+div.menu_layer_1 li {
+    height: 30px;
+    padding-left: 70px;
+}
+
+div.menu_layer_2 {
+    top: 60px;
+    left: 400px;
+    z-index: 100;
+    border: 0;
+    width: 200px;
+    position: fixed;
+    background: #4672BF;
+    opacity: 0.8;
+    color: white;
+    list-style: none;
+    display: none;
+}
+div.menu_layer_2 li {
+    height: 30px;
+    padding-left: 40px;
 }
 
 div#unread_num,div.countdown3,div#active_user_num {display: inline;}
