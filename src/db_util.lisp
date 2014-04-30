@@ -123,7 +123,8 @@
   (setf *blog-months-list* (sort (summarise-blog-months) #'string< :key #'first)))
 
 (defun summarise-blog-tags ()
-  (sort *blog-tags-list* #'> :key #'second))
+  (let ((max-count-list (copy-list *blog-tags-list*)))
+    (sort *blog-tags-list* #'> :key #'second)))
 
 (defun save-blog (blog)
   (let ((old-blog (get-blog (blogid blog))))
