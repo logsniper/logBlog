@@ -392,6 +392,25 @@ $(document).ready(function () {
     });
 });
 
+$(document).ready(function () {
+    var unclick2click = function () {
+        $("#backToTopUnclick").hide();
+        $("#backToTopClick").show();
+    };
+    var click2unclick = function () {
+        $("#backToTopClick").hide();
+        $("#backToTopUnclick").show();
+    };
+    var goTop = function () {
+        unclick2click();
+        $('body,html').animate({scrollTop:0},500);
+    };
+    $("#backToTopUnclick").mouseenter(unclick2click);
+    $("#backToTopUnclick").mouseup(goTop);
+    $("#backToTopClick").mouseleave(click2unclick);
+    $("#backToTopClick").mousedown(click2unclick);
+});
+
 /* Google Analytics begin */
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

@@ -2,9 +2,10 @@ body {
     margin-left: 100px;
     width: 1200px;
     background: url(images/background.png);
+    background: #4d7dae;
     color: black;
-    font-family: Monospace;
-    background-repeat: no-repeat;
+    font-family: Monospace, \5FAE\8F6F\96C5\9ED1;
+    background-repeat: repeat;
     background-size: 100%;
     background-attachment:fixed;
     word-break: break-all;
@@ -58,7 +59,7 @@ div {
     height: 40px;
     width: 100%;
     position: fixed;
-    background: #4672BF;
+    background: #4d7dae;
     opacity: 0.8;
     color: white;
 }
@@ -92,7 +93,7 @@ div {
     min-height: 300px;
     display: block;
     float: left;
-    background: #E0E0FF;
+    background: #b2daf4;
     border-style: solid;
     border-color: grey;
     padding: 0 20px 20px 20px;
@@ -103,7 +104,7 @@ div {
     width: 900px;
     display: block;
     float: left;
-    background: #E0E0FF;
+    background: #b2daf4;
     border-style: solid;
     border-color: grey;
     padding: 0 20px 20px 20px;
@@ -117,7 +118,8 @@ div {
     border-style: solid;
     border-color: grey;
     margin: 40px 0 0 0;
-    background: #DDDDFF;
+    background: #b2daf4;
+    list-style: none;
 }
 
 .content {
@@ -168,12 +170,12 @@ div {
 }
 
 [hierarchy=even] {
-    background: #DDDDFF;
+    background: #b2daf4;
 }
 
 div.categories {
     margin: 10px 1% 0 1%;
-    padding: 10px 0;
+    padding: 10px 10px;
     border-style: solid;
     border-color: grey;
     background: white;
@@ -181,7 +183,7 @@ div.categories {
 
 div.comments {
     margin: 10px 1% 0 1%;
-    padding: 10px 0;
+    padding: 10px 10px;
     border-style: solid;
     border-color: grey;
     background: white;
@@ -190,7 +192,7 @@ div.comments {
 div.sidebar_title {
     font-size:20px;
     color: white;
-    background:#4672BF;
+    background:#4d7dae;
     width: 190px;
     margin-left:20px;
     margin-right:20px;
@@ -201,11 +203,10 @@ div.sidebar_title {
 div.menu_layer_1 {
     top: 40px;
     left: 200px;
-    z-index: 100;
     border: 0;
     width: 200px;
     position: fixed;
-    background: #4672BF;
+    background: #4d7dae;
     opacity: 0.8;
     color: white;
     list-style: none;
@@ -219,11 +220,10 @@ div.menu_layer_1 li {
 div.menu_layer_2 {
     top: 60px;
     left: 400px;
-    z-index: 100;
     border: 0;
     width: 200px;
     position: fixed;
-    background: #4672BF;
+    background: #4d7dae;
     opacity: 0.8;
     color: white;
     list-style: none;
@@ -235,3 +235,9 @@ div.menu_layer_2 li {
 }
 
 div#unread_num,div.countdown3,div#active_user_num {display: inline;}
+
+div.prev_blog,div.next_blog {width: 420px;}
+div.next_blog {text-align:right;}
+div#backToTopUnclick, div#backToTopClick {width:71px; height:71px;top:85%; left:85%; z-index: 200;position:fixed;display:none;}
+div#backToTopUnclick {background: url(images/backToTopUnclick.png);opacity: 0.7;display:block;}
+div#backToTopClick {background: url(images/backToTopClick.png);opacity: 1;}

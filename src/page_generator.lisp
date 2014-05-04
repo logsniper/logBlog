@@ -20,11 +20,12 @@
                     (incf accept-num)))
     body))
 
+(defun collect-list (var-list)
+  (loop for item in var-list
+        collect (list :key (first item)
+                      :count (second item))))
+
 (defun generate-navigator-page ()
-  (defun collect-list (var-list)
-    (loop for item in var-list
-          collect (list :key (first item)
-                        :count (second item))))
   (with-cookie-user (cookie-userinfo)
     (with-output-to-string (stream)
       (let ((tags-list (collect-list *blog-tags-list*))
@@ -154,7 +155,7 @@
                         when (and (blog-filter-with-tag blog-post need-tag)
                                   (blog-filter-with-month blog-post need-month))
                         collect (list :host-address *host-address*
-                                      :title (title blog-post)
+                                      :title (cut-string-tail (title blog-post) 20)
                                       :blogid (blogid blog-post)
                                       :time (timestamp-to-string (timestamp blog-post))
                                       :body-part (merge-paragraphs blog-post 5 t)
@@ -237,9 +238,9 @@
                     :msg-num (msg-num blog)
                     :body (merge-paragraphs blog)
                     :prev-blogid (if (>= (first prev-next-pair) 0) (first prev-next-pair) nil)
-                    :prev-blog-title (if (>= (first prev-next-pair) 0) (title (get-blog (first prev-next-pair))) nil)
+                    :prev-blog-title (if (>= (first prev-next-pair) 0) (cut-string-tail (title (get-blog (first prev-next-pair))) 15) nil)
                     :next-blogid (if (>= (second prev-next-pair) 0) (second prev-next-pair) nil)
-                    :next-blog-title (if (>= (second prev-next-pair) 0) (title (get-blog (second prev-next-pair))) nil))
+                    :next-blog-title (if (>= (second prev-next-pair) 0) (cut-string-tail (title (get-blog (second prev-next-pair))) 15) nil))
             :stream stream)))
         (generate-hint-response-page)))))
 
@@ -305,6 +306,7 @@
           (html-template:fill-and-print-template
             #P"./create_edit_blog.tmpl"
             (list :navigator (generate-navigator-page)
+                  :sidebar (generate-sidebar)
                   :title (title blog)
                   :published (published blog)
                   :timestamp (timestamp-to-string (timestamp blog))

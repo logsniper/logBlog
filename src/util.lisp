@@ -125,3 +125,8 @@
            (incf (request-in-this-minute it))
            it)
          (setf (gethash key *active-user-hash*) (make-instance 'user-status)))))
+
+(defun cut-string-tail (title max-len)
+  (if (> (length title) max-len)
+    (concatenate 'string (subseq title 0 max-len) "...")
+    title))

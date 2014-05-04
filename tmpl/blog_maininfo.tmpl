@@ -6,10 +6,17 @@
       <div class=content>
         <!-- tmpl_var body -->
       </div>
+    </div>
+    <table><tr><td>
+    <div class=prev_blog>
       <!-- tmpl_if prev-blogid -->
-        <li><a href="javascript:void(0)" onclick="ajaxFetchBlog(<!-- tmpl_var prev-blogid -->)">上一篇: <!-- tmpl_var prev-blog-title --></a></li>
-      <!-- /tmpl_if -->
-      <!-- tmpl_if next-blogid -->
-        <li><a href="javascript:void(0)" onclick="ajaxFetchBlog(<!-- tmpl_var next-blogid -->)">下一篇: <!-- tmpl_var next-blog-title --></a></li>
+      <a href="javascript:void(0)" onclick="ajaxFetchBlog(<!-- tmpl_var prev-blogid -->)">上一篇: <!-- tmpl_var prev-blog-title --></a>
       <!-- /tmpl_if -->
     </div>
+    </td><td>
+    <div class=next_blog>
+      <!-- tmpl_if next-blogid -->
+      <a href="javascript:void(0)" onclick="ajaxFetchBlog(<!-- tmpl_var next-blogid -->)">下一篇: <!-- tmpl_var next-blog-title --></a>
+      <!-- /tmpl_if -->
+    </div>
+    </tr></tr></table>
