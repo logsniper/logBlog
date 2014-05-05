@@ -4,7 +4,7 @@ body {
     background: url(images/background.png);
     background: #4d7dae;
     color: black;
-    font-family: Monospace, \5FAE\8F6F\96C5\9ED1;
+    font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace, "微软雅黑", "microsoft yahei";
     background-repeat: repeat;
     background-size: 100%;
     background-attachment:fixed;
@@ -121,6 +121,8 @@ div {
     background: #b2daf4;
     list-style: none;
 }
+
+.online_number {padding-left: 10px;}
 
 .content {
     margin: 20px 0 20px 0;

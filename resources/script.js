@@ -112,7 +112,7 @@ function ajaxLogin(e) {
                 var json = JSON.parse(responseData);
                 if (json.status == "11") {
                     $("#login_form").hide();
-                    hintinfo = "登陆成功, <div class=countdown3>3</div>秒后即将跳转到前一页面";
+                    hintinfo = "登陆成功, 即将跳转到前一页面";
                     jump = true;
                 } else if (json.status == "12") {
                     hintinfo = "邮箱、密码错误";
@@ -122,9 +122,11 @@ function ajaxLogin(e) {
             } else {
                 hintinfo = "由于内部原因登录失败";
             }
-            $("#login_hint").hide().html(hintinfo).slideDown();
             if (jump) {
-                countDown(".countdown3", 3, jumpBack);
+                $("#login_hint").html(hintinfo);
+                jumpBack();
+            } else {
+                $("#login_hint").hide().html(hintinfo).slideDown();
             }
         });
     } else {
@@ -373,21 +375,25 @@ $(document).ready(function () {
     function mouseEnterMenuLayer1Closure (type) {
         return function () {
             $(".menu_layer_2").hide();
-            $(".menu_layer_2#" + type).slideDown();
-        }
+            $(".menu_layer_2#" + type).slideDown("fast");
+        };
     }
-    $(".menu_layer_1 #by_tag").hover(mouseEnterMenuLayer1Closure("by_tag"), function () {});
-    $(".menu_layer_1 #by_month").hover(mouseEnterMenuLayer1Closure("by_month"), function () {});
-    $("#menu_button").click(function () {
-        var menuLayer1 = $(".menu_layer_1");
-        var expanded = parseInt(menuLayer1.attr("expanded"));
-        if (expanded > 0) {
+    $(".menu_layer_1 #by_tag").mouseenter(mouseEnterMenuLayer1Closure("by_tag"));
+    $(".menu_layer_1 #by_month").mouseenter(mouseEnterMenuLayer1Closure("by_month"));
+    $("#menu_button").mouseenter(function () {
+        $(".menu_layer_2").hide();
+        $(".menu_layer_1").slideDown("fast");
+    });
+    $(document).click(function (e) {
+        if (e.target.id != "menu_button" && e.target.id != "by_tag" && e.target.id != "by_month") {
             $(".menu_layer_2").hide();
-            menuLayer1.slideUp("fast");
-            menuLayer1.attr("expanded", 0);
-        } else {
-            menuLayer1.slideDown("fast");
-            menuLayer1.attr("expanded", 1);
+            $(".menu_layer_1").slideUp("fast");
+        }
+    });
+    $("#navigator .nav_button").mouseenter(function (e) {
+        if (e.target.id != "menu_button") {
+            $(".menu_layer_2").hide();
+            $(".menu_layer_1").slideUp("fast");
         }
     });
 });

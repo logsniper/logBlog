@@ -11,7 +11,7 @@
   <div id=unread_hint>
     您有<a href="unread_msg"><div id=unread_num><!-- tmpl_var unread_num --></div>条未读回复</a>.
   </div>
-  <div class=menu_layer_1 expanded=0>
+  <div class=menu_layer_1>
     <li class=nav_button id=by_tag>按分类</li>
     <li class=nav_button id=by_month>按日期</li>
   </div>
@@ -25,5 +25,5 @@
     <a href="/index?month=<!-- tmpl_var key -->"><li class=nav_button><!-- tmpl_var key -->(<!-- tmpl_var count -->)</li></a>
     <!-- /tmpl_loop -->
   </div>
-  <div id=backToTopUnclick></div>
-  <div id=backToTopClick></div>
+  <a href="javascript:void(0)"><div id=backToTopUnclick></div></a>
+  <a href="javascript:void(0)"><div id=backToTopClick></div></a>

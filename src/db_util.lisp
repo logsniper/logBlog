@@ -124,7 +124,7 @@
 
 (defun summarise-blog-tags ()
   (let ((max-count-list (copy-list *blog-tags-list*)))
-    (sort *blog-tags-list* #'> :key #'second)))
+    (sort max-count-list #'> :key #'second)))
 
 (defun save-blog (blog)
   (let ((old-blog (get-blog (blogid blog))))

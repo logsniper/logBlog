@@ -113,7 +113,7 @@
               (progn (update-user-info-db userinfo :author author :password password)
                      (update-user-info-cookie userinfo)
                      (hunchentoot:redirect "/hint?v=1" :host *host-address* :protocol :http :code 303))
-              (hunchentoot:redirect "/hint?v=2" :host *host-address* :protocol :http :code 303))))
+              (hunchentoot:redirect (hunchentoot:referer) :protocol :http :code 303))))
         (hunchentoot:redirect "/hint?v=3" :host *host-address* :protocol :http :code 303)))))
 
 (defun generate-hint-response-page ()
