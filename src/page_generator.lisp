@@ -2,6 +2,15 @@
 
 (setq html-template:*default-template-pathname* *template-path*)
 (setq html-template:*string-modifier* #'identity)
+(defparameter *static-resource-version* 0)
+(setf *static-resource-version* (get-universal-time))
+
+(defun generate-static-resources-info ()
+  (with-output-to-string (stream)
+    (html-template:fill-and-print-template
+      #P"./static_resources.tmpl"
+      (list :static-version *static-resource-version*)
+      :stream stream)))
 
 (defun decorate-paragraph (para)
   (with-output-to-string (stream)
@@ -76,6 +85,7 @@
           (html-template:fill-and-print-template
             ,file-name
             (list :navigator (generate-navigator-page)
+                  :static-resources (generate-static-resources-info)
                   :sidebar (generate-sidebar))
             :stream stream)))))
 
@@ -126,6 +136,7 @@
           #P"./hint.tmpl"
           (list :navigator (generate-navigator-page)
                 :sidebar (generate-sidebar)
+                :static-resources (generate-static-resources-info)
                 :hintinfo (get-hintinfo-by-id hintid)
                 :refer-url refer-url
                 :main-page *host-address*)
@@ -149,6 +160,7 @@
         (html-template:fill-and-print-template
           #P"./blog_list.tmpl"
           (list :navigator (generate-navigator-page)
+                :static-resources (generate-static-resources-info)
                 :blog-posts
                 (nreverse
                   (loop for blog-post in (pset-list *blog-posts*)
@@ -265,6 +277,7 @@
     (html-template:fill-and-print-template
       #P"./view_blog.tmpl"
       (list :navigator (generate-navigator-page)
+            :static-resources (generate-static-resources-info)
             :blog-maininfo (generate-blog-maininfo-div)
             :blog-msginfo (generate-blog-msginfo-div)
             :sidebar (generate-sidebar))
@@ -306,6 +319,7 @@
           (html-template:fill-and-print-template
             #P"./create_edit_blog.tmpl"
             (list :navigator (generate-navigator-page)
+                  :static-resources (generate-static-resources-info)
                   :sidebar (generate-sidebar)
                   :title (title blog)
                   :published (published blog)
@@ -337,6 +351,7 @@
         (list :host *host-address*
               :navigator (generate-navigator-page)
               :sidebar (generate-sidebar)
+              :static-resources (generate-static-resources-info)
               :message-posts
               (if userinfo
                 (loop for message-post in (mapcar #'(lambda (msgid) (get-message msgid)) (new-reply userinfo))

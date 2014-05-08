@@ -109,6 +109,7 @@
                  (if userinfo
                    (push (author userinfo) userlist)
                    (incf unreg-num))))
+      (setf *active-user-num* (+ (length userlist) unreg-num))
       (list userlist unreg-num))))
 
 (defmacro with-cookie-user ((userinfo) &body body)

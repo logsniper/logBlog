@@ -266,6 +266,36 @@ function ajaxFetchBlog(blogid) {
     });
 }
 
+function checkUpdate () {
+   var latestMsgID = -1;
+    if ($(".comments .recent .cancel_unread").get(0) != undefined) {
+        // attr返回对象数组中第一个元素的属性
+        latestMsgID = parseInt($(".comments .recent .cancel_unread").attr("mid"));
+    }
+    var dataPost = {'latest_msg_id': latestMsgID};
+    $.post("check_update", dataPost, function (responseData, stat) {
+        if (stat == "success") {
+            var json = JSON.parse(responseData);
+            $("#unread_num").text(json.unread_num);
+            if (json.unread_num > 0) {
+                $("#unread_hint").show();
+            } else {
+                $("#unread_hint").hide();
+            }
+            if (json.has_new_msg > 0) {
+                $.get("ajax_recent_msg", function (responseData, stat) {
+                    if (stat == "success") {
+                        $(".comments .recent").hide().html(responseData).fadeIn();
+                    }
+                });
+            }
+            if (json.active_user_num != undefined) {
+                $("#active_user_num").text(json.active_user_num);
+            }
+        }
+    });
+};
+
 $(document).ready(function() {
     $(".register#input_author").blur(function(){
         if ($(this).val() == "") {
@@ -322,40 +352,12 @@ $(document).ready(function () {
     $("#mark_all_unread_button").click(mark_all_unread);
 });
 
+
 $(document).ready(function () {
     if (parseInt($("#unread_num").text()) == 0) {
         $("#unread_hint").hide();
     }
-    var check_update = function () { 
-        var latestMsgID = -1;
-        if ($(".comments .recent .cancel_unread").get(0) != undefined) {
-            // attr返回对象数组中第一个元素的属性
-            latestMsgID = parseInt($(".comments .recent .cancel_unread").attr("mid"));
-        }
-        var dataPost = {'latest_msg_id': latestMsgID};
-        $.post("check_update", dataPost, function (responseData, stat) {
-            if (stat == "success") {
-                var json = JSON.parse(responseData);
-                $("#unread_num").text(json.unread_num);
-                if (json.unread_num > 0) {
-                    $("#unread_hint").show();
-                } else {
-                    $("#unread_hint").hide();
-                }
-                if (json.has_new_msg > 0) {
-                    $.get("ajax_recent_msg", function (responseData, stat) {
-                        if (stat == "success") {
-                            $(".comments .recent").hide().html(responseData).fadeIn();
-                        }
-                    });
-                }
-                if (json.active_user_num != undefined) {
-                    $("#active_user_num").text(json.active_user_num);
-                }
-            }
-        });
-    };
-    setInterval(check_update, 15000);
+    setInterval(checkUpdate, 15000);
 });
 
 /* highlight given message */
@@ -426,6 +428,7 @@ $(document).ready(function () {
     $(".online_number").click(function () {
         var showList = $(".online_user_list");
         if (showList.css("display") == "none") {
+            checkUpdate();
             $.get("online_users", function (responseData, stat) {
                 if (stat == "success") {
                     var response = JSON.parse(responseData);
