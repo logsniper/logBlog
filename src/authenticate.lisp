@@ -100,6 +100,17 @@
     (setf (token userinfo) nil)
     (log-warning "failed to logout.")))
 
+(defun output-active-users ()
+  (sb-thread:with-mutex (*active-user-hash-mutex*)
+    (let ((unreg-num 0)
+          (userlist (list)))
+      (loop for k being the hash-keys in *active-user-hash* using (hash-value user-status)
+            do (let ((userinfo (query-userinfo-by-email k)))
+                 (if userinfo
+                   (push (author userinfo) userlist)
+                   (incf unreg-num))))
+      (list userlist unreg-num))))
+
 (defmacro with-cookie-user ((userinfo) &body body)
   `(let ((,userinfo (get-cookie-user-info))
          (user-key nil)
@@ -111,9 +122,12 @@
          (setf user-key (email ,userinfo))
          (setf replaced-key (hunchentoot:cookie-in "unreg")))
        (let ((unreg (hunchentoot:cookie-in "unreg")))
-         (if (not (none-of-them-is-empty unreg)) (setf unreg (get-random-string)))
-         (setf user-key unreg)
-         (hunchentoot:set-cookie "unreg" :value unreg)))
+         (if (not (none-of-them-is-empty unreg))
+           ;; If this is someone who has no cookie info, set cookie and use a default string as its key for once.
+           (progn
+             (hunchentoot:set-cookie "unreg" :value (get-random-string))
+             (setf user-key *default-user-key*))
+           (setf user-key unreg))))
      (let ((user-status (update-active-user user-key :replaced-key replaced-key)))
        ;; Update user status. If current user has sent too many requests, then block it.
        (sb-thread:with-mutex (*active-user-hash-mutex*)

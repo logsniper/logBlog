@@ -74,7 +74,7 @@ div {
 }
 
 #navigator a, #navigator a:visited, .menu_layer_2 a,.menu_layer_2 a:visited {color:white;}
-.nav_button:hover {background: lightblue}
+.nav_button:hover {background: #80b0e0;color: black;text-decoration: none;}
 
 #unread_hint {
     background:white;
@@ -125,7 +125,7 @@ div {
 .online_number {padding-left: 10px;}
 
 .content {
-    margin: 20px 0 20px 0;
+    margin: 20px;
     padding: 0 20px 20px 20px;
     background: white;
     border: 1px solid grey;
@@ -175,21 +175,17 @@ div {
     background: #b2daf4;
 }
 
-div.categories {
+div.categories, div.comments, div.online_user_list {
     margin: 10px 1% 0 1%;
     padding: 10px 10px;
     border-style: solid;
     border-color: grey;
     background: white;
+    max-height: 400px;
+    overflow-y:auto;
 }
 
-div.comments {
-    margin: 10px 1% 0 1%;
-    padding: 10px 10px;
-    border-style: solid;
-    border-color: grey;
-    background: white;
-}
+div.online_user_list {display:none;}
 
 div.sidebar_title {
     font-size:20px;

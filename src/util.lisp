@@ -109,6 +109,7 @@
 (defparameter *active-user-hash* (make-hash-table :test 'equal))
 (defparameter *active-user-num* 0)
 (defparameter *active-user-hash-mutex* (sb-thread:make-mutex :name "active-user-hash-mutex"))
+(defparameter *default-user-key* "#DEFAULT-USER-KEY#")
 
 (defclass user-status ()
   ((last-time :initform (get-universal-time)

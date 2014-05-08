@@ -15,7 +15,7 @@
                      (setf (gethash k inactive-user) (last-time user-status))
                      (remhash k *active-user-hash*))
                    (progn
-                     (incf cur-num)
+                     (if (not (string= k *default-user-key*)) (incf cur-num))
                      (if (> (request-in-this-minute user-status) *max-request-per-user-per-minute*)
                        (log-monitor "too many request last minute.[user:~a] [reqnum:~a]"
                                     k (request-in-this-minute user-status)))
@@ -27,11 +27,6 @@
     (unless (= cur-num *active-user-num*)
       (log-monitor "active-user-num=~a" cur-num))
     (setf *active-user-num* cur-num)))
-
-(defun output-active-user ()
-  (sb-thread:with-mutex (*active-user-hash-mutex*)
-    (loop for k being the hash-keys in *active-user-hash* using (hash-value user-status)
-          do (log-monitor "active-user:~a, request-in-this-minute:~a" k (request-in-this-minute user-status)))))
 
 (defun terminate-zombie-thread ()
   (loop for thread in (sb-thread:list-all-threads)

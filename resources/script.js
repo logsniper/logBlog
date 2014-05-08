@@ -374,8 +374,10 @@ $(document).ready(function () {
 $(document).ready(function () {
     function mouseEnterMenuLayer1Closure (type) {
         return function () {
-            $(".menu_layer_2").hide();
-            $(".menu_layer_2#" + type).slideDown("fast");
+            if ($(".menu_layer_1").attr("expanded") > 0) {
+                $(".menu_layer_2").hide();
+                $(".menu_layer_2#" + type).slideDown("fast");
+            }
         };
     }
     $(".menu_layer_1 #by_tag").mouseenter(mouseEnterMenuLayer1Closure("by_tag"));
@@ -383,15 +385,18 @@ $(document).ready(function () {
     $("#menu_button").mouseenter(function () {
         $(".menu_layer_2").hide();
         $(".menu_layer_1").slideDown("fast");
+        $(".menu_layer_1").attr("expanded", 1);
     });
     $(document).click(function (e) {
         if (e.target.id != "menu_button" && e.target.id != "by_tag" && e.target.id != "by_month") {
+            $(".menu_layer_1").attr("expanded", 0);
             $(".menu_layer_2").hide();
             $(".menu_layer_1").slideUp("fast");
         }
     });
     $("#navigator .nav_button").mouseenter(function (e) {
         if (e.target.id != "menu_button") {
+            $(".menu_layer_1").attr("expanded", 0);
             $(".menu_layer_2").hide();
             $(".menu_layer_1").slideUp("fast");
         }
@@ -415,6 +420,28 @@ $(document).ready(function () {
     $("#backToTopUnclick").mouseup(goTop);
     $("#backToTopClick").mouseleave(click2unclick);
     $("#backToTopClick").mousedown(click2unclick);
+});
+
+$(document).ready(function () {
+    $(".online_number").click(function () {
+        var showList = $(".online_user_list");
+        if (showList.css("display") == "none") {
+            $.get("online_users", function (responseData, stat) {
+                if (stat == "success") {
+                    var response = JSON.parse(responseData);
+                    showList.hide();
+                    showList.empty();
+                    response.users.forEach(function (user) {
+                        showList.append('<li>'+user+'</li>');
+                    });
+                    if (response.tourists) showList.append('<li>游客: '+response.tourists+'</li>');
+                    showList.slideDown();
+                }
+            });
+        } else {
+            showList.slideUp();
+        }
+    });
 });
 
 /* Google Analytics begin */
