@@ -30,6 +30,7 @@
 (setf (hunchentoot:acceptor-message-log-destination acceptor) *message-log-path*)
 (setf (hunchentoot:acceptor-access-log-destination acceptor) *access-log-path*)
 (setf hunchentoot:*acceptor* acceptor)
+(setf SB-IMPL::*DEFAULT-EXTERNAL-FORMAT* :utf-8)
 
 ;(load "./src/update_pclass_tool.lisp")
 

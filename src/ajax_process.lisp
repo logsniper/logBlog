@@ -70,11 +70,11 @@
       (format stream "{\"exist\": ~a}" (if (query-userinfo-by-author author) 1 0)))))
 
 (defun get-online-user-list ()
-  (with-output-to-string (stream)
+  (with-cookie-user (userinfo) (with-output-to-string (stream)
     (let* ((online-user-list (output-active-users))
            (len (length (first online-user-list))))
       (format stream "{\"tourists\":~a, \"users\":[" (second online-user-list))
       (loop for i from 0 to len
             for author in (first online-user-list)
             do (format stream "~a\"~a\"" (if (> i 0) "," "") author))
-      (format stream "]}"))))
+      (format stream "]}")))))
